@@ -2,7 +2,6 @@ import type * as RapierNS from '@dimforge/rapier3d';
 import { forkJoin, lastValueFrom } from 'rxjs';
 import {
   BoxGeometry,
-  BufferGeometry,
   Camera,
   CameraHelper,
   Color,
@@ -13,32 +12,24 @@ import {
   Group,
   type Material,
   Mesh,
-  MeshPhysicalMaterial,
-  MeshStandardMaterial,
-  type Object3D,
   PCFSoftShadowMap,
   PerspectiveCamera,
-  Quaternion,
   Scene,
   Timer,
-  Vector3,
   type Vector3Like,
   WebGLRenderer,
 } from 'three';
-import { type GLTF, GLTFLoader, HDRLoader } from 'three/addons';
+import { HDRLoader } from 'three/addons';
 import { OrbitControls } from 'three-stdlib';
 
 import { clamp, html } from '@xstate-workshop/utils';
 
+import { loadModels } from '../load-models';
 import {
-  createCollisionGroupMask,
   createPhysicsWorldHelper,
   fromFullscreenKeyup,
   fromWindowResize,
-  getModelUrl,
   getTextureUrl,
-  packCollisionGroupMasks,
-  setWorldFrom,
 } from '../utils';
 
 function setupCanvas(): HTMLCanvasElement {
@@ -69,20 +60,6 @@ function setupRenderer(canvas: HTMLCanvasElement): WebGLRenderer {
   return renderer;
 }
 
-type Models = {
-  ceilingFan: GLTF;
-};
-
-function loadModels(): Promise<Models> {
-  const gltfLoader = new GLTFLoader();
-
-  return lastValueFrom(
-    forkJoin({
-      ceilingFan: gltfLoader.loadAsync(getModelUrl('ceiling-fan', 'gltf')),
-    })
-  );
-}
-
 type Textures = {
   environmentMap: DataTexture;
 };
@@ -99,123 +76,6 @@ function loadTextures(): Promise<Textures> {
   );
 }
 
-type CeilingFanMesh = Mesh<BufferGeometry, MeshPhysicalMaterial>;
-
-function isCeilingFanMesh(object: Object3D): object is CeilingFanMesh {
-  return (
-    object instanceof Mesh &&
-    object.geometry instanceof BufferGeometry &&
-    object.material instanceof MeshPhysicalMaterial &&
-    object.name === 'ceiling-fan'
-  );
-}
-
-type CeilingFanBladesMesh = Mesh<BufferGeometry, MeshPhysicalMaterial>;
-
-function isCeilingFanBladesMesh(
-  object: Object3D
-): object is CeilingFanBladesMesh {
-  return (
-    object instanceof Mesh &&
-    object.geometry instanceof BufferGeometry &&
-    object.material instanceof MeshPhysicalMaterial &&
-    object.name === 'ceiling-fan-blades'
-  );
-}
-
-enum PhysicsJointType {
-  Revolute = 'revolute',
-}
-
-enum PhysicsRole {
-  Collider = 'collider',
-  Joint = 'joint',
-}
-
-enum PhysicsShape {
-  Cuboid = 'cuboid',
-  Cylinder = 'cylinder',
-}
-
-type CylinderColliderPhysicsData = {
-  'physics.halfHeight': number;
-  'physics.radius': number;
-  'physics.role': PhysicsRole.Collider;
-  'physics.shape': PhysicsShape.Cylinder;
-  'physics.target': string;
-};
-
-function isCylinderColliderPhysicsData(
-  userData: Record<string, unknown>
-): userData is CylinderColliderPhysicsData {
-  return !(
-    typeof userData !== 'object' ||
-    userData === null ||
-    !('physics.halfHeight' in userData) ||
-    !('physics.radius' in userData) ||
-    !('physics.role' in userData) ||
-    !('physics.shape' in userData) ||
-    !('physics.target' in userData) ||
-    typeof userData['physics.halfHeight'] !== 'number' ||
-    typeof userData['physics.radius'] !== 'number' ||
-    userData['physics.role'] !== PhysicsRole.Collider ||
-    userData['physics.shape'] !== PhysicsShape.Cylinder ||
-    typeof userData['physics.target'] !== 'string'
-  );
-}
-
-type CuboidColliderPhysicsData = {
-  'physics.halfExtents': [number, number, number];
-  'physics.role': PhysicsRole.Collider;
-  'physics.shape': PhysicsShape.Cuboid;
-  'physics.target': string;
-};
-
-function isCuboidColliderPhysicsData(
-  userData: Record<string, unknown>
-): userData is CuboidColliderPhysicsData {
-  return !(
-    typeof userData !== 'object' ||
-    userData === null ||
-    !('physics.halfExtents' in userData) ||
-    !('physics.role' in userData) ||
-    !('physics.shape' in userData) ||
-    !('physics.target' in userData) ||
-    !Array.isArray(userData['physics.halfExtents']) ||
-    userData['physics.halfExtents'].length !== 3 ||
-    typeof userData['physics.halfExtents'][0] !== 'number' ||
-    typeof userData['physics.halfExtents'][1] !== 'number' ||
-    typeof userData['physics.halfExtents'][2] !== 'number' ||
-    userData['physics.role'] !== PhysicsRole.Collider ||
-    userData['physics.shape'] !== PhysicsShape.Cuboid ||
-    typeof userData['physics.target'] !== 'string'
-  );
-}
-
-type RevoluteJointPhysicsData = {
-  'physics.bodyA': string;
-  'physics.bodyB': string;
-  'physics.jointType': PhysicsJointType.Revolute;
-  'physics.role': PhysicsRole.Joint;
-};
-
-function isRevoluteJointPhysicsData(
-  userData: Record<string, unknown>
-): userData is RevoluteJointPhysicsData {
-  return !(
-    typeof userData !== 'object' ||
-    userData === null ||
-    !('physics.bodyA' in userData) ||
-    !('physics.bodyB' in userData) ||
-    !('physics.jointType' in userData) ||
-    !('physics.role' in userData) ||
-    typeof userData['physics.bodyA'] !== 'string' ||
-    typeof userData['physics.bodyB'] !== 'string' ||
-    userData['physics.jointType'] !== PhysicsJointType.Revolute ||
-    userData['physics.role'] !== PhysicsRole.Joint
-  );
-}
-
 async function setupPhysics() {
   const Rapier = await import('@dimforge/rapier3d');
 
@@ -224,7 +84,7 @@ async function setupPhysics() {
   return { Rapier, world };
 }
 
-type CreateCeilingOptions = {
+type CreateFloorOptions = {
   depth: number;
   height: number;
   material: Material;
@@ -232,14 +92,14 @@ type CreateCeilingOptions = {
   width: number;
 };
 
-type Ceiling = {
+type Floor = {
   body: RapierNS.RigidBody;
   collider: RapierNS.Collider;
   dispose: () => void;
   mesh: Mesh<BoxGeometry, Material>;
 };
 
-function createCeiling(
+function createFloor(
   Rapier: typeof RapierNS,
   world: RapierNS.World,
   scene: Scene,
@@ -249,8 +109,8 @@ function createCeiling(
     material,
     position = { x: 0, y: 0, z: 0 },
     width,
-  }: CreateCeilingOptions
-): Ceiling {
+  }: CreateFloorOptions
+): Floor {
   const body = world.createRigidBody(
     Rapier.RigidBodyDesc.fixed().setTranslation(
       position.x,
@@ -283,6 +143,204 @@ function createCeiling(
   return { body, collider, dispose, mesh };
 }
 
+function setupScene(textures: Textures) {
+  const scene = new Scene();
+
+  scene.background = textures.environmentMap;
+  scene.environment = textures.environmentMap;
+
+  const camera = new PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    100
+  );
+  // TODO: remove this after debugging
+  // camera.position.set(7, 0, 7);
+  camera.position.set(5, 5, 5);
+
+  const directionalLight = new DirectionalLight(new Color(3, 2, 2.5), 2.1);
+  directionalLight.position.set(-20, -7, -7);
+
+  directionalLight.shadow.camera.bottom = -15;
+  directionalLight.shadow.camera.near = 5;
+  directionalLight.shadow.camera.far = 40;
+  directionalLight.shadow.camera.left = -15;
+  directionalLight.shadow.camera.right = 15;
+  directionalLight.shadow.camera.top = 15;
+  directionalLight.shadow.mapSize.set(2048, 2048);
+  directionalLight.shadow.normalBias = 0.01;
+  directionalLight.shadow.bias = 0;
+  directionalLight.castShadow = true;
+
+  const directionalLightCameraHelper = new CameraHelper(
+    directionalLight.shadow.camera
+  );
+  directionalLightCameraHelper.visible = false;
+  const directionalLightHelper = new DirectionalLightHelper(directionalLight);
+  directionalLightHelper.visible = false;
+
+  scene.add(
+    camera,
+    directionalLight,
+    directionalLight.target,
+    directionalLightCameraHelper,
+    directionalLightHelper
+  );
+
+  return {
+    camera,
+    directionalLight,
+    directionalLightCameraHelper,
+    directionalLightHelper,
+    scene,
+  };
+}
+
+function animate(
+  renderer: WebGLRenderer,
+  scene: Scene,
+  camera: Camera,
+  onFrame?: (elapsedTime: number, deltaTime: number) => void
+) {
+  const timer = new Timer();
+
+  let prevElapsedTime = 0;
+
+  let animationFrameHandle: number | undefined;
+
+  const tick = () => {
+    timer.update();
+    const elapsedTime = timer.getElapsed();
+    const deltaTime = elapsedTime - prevElapsedTime;
+    prevElapsedTime = elapsedTime;
+    onFrame?.(elapsedTime, deltaTime);
+    renderer.render(scene, camera);
+    animationFrameHandle = requestAnimationFrame(tick);
+  };
+
+  tick();
+
+  return () => {
+    if (animationFrameHandle) {
+      cancelAnimationFrame(animationFrameHandle);
+    }
+  };
+}
+
+export async function run() {
+  // TODO: implement debug controls
+  // const gui = createControlsPanel();
+  const canvas = setupCanvas();
+  const renderer = setupRenderer(canvas);
+
+  const models = await loadModels();
+
+  const textures = await loadTextures();
+  textures.environmentMap.mapping = EquirectangularReflectionMapping;
+
+  const { Rapier, world } = await setupPhysics();
+
+  const { camera, scene } = setupScene(textures);
+
+  const physicsWorldHelper = createPhysicsWorldHelper(world);
+  physicsWorldHelper.lines.visible = false;
+  scene.add(physicsWorldHelper.lines);
+
+  const coverStripeBarGroup = new Group();
+  coverStripeBarGroup.add(models.coverStripeBar.scene);
+
+  const robotArmBGroup = new Group();
+  coverStripeBarGroup.add(models.robotArmB.scene);
+
+  scene.add(coverStripeBarGroup, robotArmBGroup);
+
+  // TODO: restore this after debugging
+  /*
+  const floorMaterial = new MeshStandardMaterial({
+    color: 0x77_77_77,
+    envMap: textures.environmentMap,
+    metalness: 0.8,
+    roughness: 1,
+  });
+
+  const floor = createFloor(Rapier, world, scene, {
+    depth: 20,
+    height: 0.1,
+    material: floorMaterial,
+    position: { x: 0, y: 2.5, z: 0 },
+    width: 20,
+  });
+  */
+
+  // TODO: remove this after debugging
+  /*
+  const ceilingFan = createCeilingFan(Rapier, world, scene, {
+    ceilingFanBladesMass: 1,
+    ceilingFanMass: 1,
+    model: models.ceilingFan,
+    position: new Vector3().subVectors(ceiling.body.translation(), {
+      x: 0,
+      y: CEILING_HEIGHT / 2,
+      z: 0,
+    }),
+    scale: 5,
+  });
+
+  const fixedAnchor = createFixedAnchor(Rapier, world, {
+    ceilingBody: ceiling.body,
+    ceilingFanBody: ceilingFan.ceilingFanBody,
+  });
+
+  ceilingFan.joint.configureMotorVelocity(10, 0.5);
+  */
+
+  fromWindowResize().subscribe(({ aspect, height, width }) => {
+    camera.aspect = aspect;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(clamp(window.devicePixelRatio, 1, 2));
+  });
+
+  fromFullscreenKeyup().subscribe((shouldFullscreen) => {
+    if (shouldFullscreen) canvas.requestFullscreen();
+    else document.exitFullscreen();
+  });
+
+  // TODO: implement custom camera controls
+  const orbitControls = new OrbitControls(camera, canvas);
+  // TODO: remove this after debugging
+  /*
+  orbitControls.enablePan = false;
+  orbitControls.enableZoom = false;
+  orbitControls.minPolarAngle = 1.4;
+  */
+
+  const eventQueue = new Rapier.EventQueue(true);
+
+  const cancelAnimation = animate(renderer, scene, camera, () => {
+    orbitControls.update();
+
+    world.step(eventQueue);
+
+    // TODO: update entities later
+    // ceilingFan.update();
+    physicsWorldHelper.update();
+  });
+
+  return () => {
+    cancelAnimation();
+    eventQueue.free();
+
+    // TODO: dispose of entities later
+    // ceiling.dispose();
+    // ceilingFan.dispose();
+    // fixedAnchor.dispose();
+  };
+}
+
+// TODO: remove this after debugging
+/*
 const WORLD_COLLISION_GROUP_MASK = createCollisionGroupMask(0);
 const CEILING_FAN_COLLISION_GROUP_MASK = createCollisionGroupMask(1);
 const CEILING_FAN_BLADES_COLLISION_GROUP_MASK = createCollisionGroupMask(2);
@@ -290,7 +348,7 @@ const CEILING_FAN_BLADES_COLLISION_GROUP_MASK = createCollisionGroupMask(2);
 type CreateCeilingFanBodyColliderOptions = {
   halfExtents: [number, number, number];
   mass: number;
-  mesh: CeilingFanMesh;
+  mesh: Object3D;
   position: Vector3;
   worldPosition: Vector3;
   worldRotation: Quaternion;
@@ -359,7 +417,7 @@ function createCeilingFanBodyCollider(
 type CreateCeilingFanBladesBodyColliderOptions = {
   halfHeight: number;
   mass: number;
-  mesh: CeilingFanBladesMesh;
+  mesh: Object3D;
   position: Vector3;
   radius: number;
   worldPosition: Vector3;
@@ -518,13 +576,10 @@ function createCeilingFan(
     'joint-ceiling-fan-blades'
   );
 
-  if (ceilingFan === undefined || !isCeilingFanMesh(ceilingFan)) {
+  if (ceilingFan === undefined) {
     throw new Error('Failure to detect ceiling fan body mesh');
   }
-  if (
-    ceilingFanBlades === undefined ||
-    !isCeilingFanBladesMesh(ceilingFanBlades)
-  ) {
+  if (ceilingFanBlades === undefined) {
     throw new Error('Failure to detect ceiling fan blades mesh');
   }
   if (
@@ -687,181 +742,4 @@ function createFixedAnchor(
 
   return { dispose, joint };
 }
-
-function setupScene(textures: Textures) {
-  const scene = new Scene();
-
-  scene.background = textures.environmentMap;
-  scene.environment = textures.environmentMap;
-
-  const camera = new PerspectiveCamera(
-    75,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    100
-  );
-  camera.position.set(7, 0, 7);
-
-  const directionalLight = new DirectionalLight(new Color(3, 2, 2.5), 2.1);
-  directionalLight.position.set(-20, -7, -7);
-
-  directionalLight.shadow.camera.bottom = -15;
-  directionalLight.shadow.camera.near = 5;
-  directionalLight.shadow.camera.far = 40;
-  directionalLight.shadow.camera.left = -15;
-  directionalLight.shadow.camera.right = 15;
-  directionalLight.shadow.camera.top = 15;
-  directionalLight.shadow.mapSize.set(2048, 2048);
-  directionalLight.shadow.normalBias = 0.01;
-  directionalLight.shadow.bias = 0;
-  directionalLight.castShadow = true;
-
-  const directionalLightCameraHelper = new CameraHelper(
-    directionalLight.shadow.camera
-  );
-  directionalLightCameraHelper.visible = false;
-  const directionalLightHelper = new DirectionalLightHelper(directionalLight);
-  directionalLightHelper.visible = false;
-
-  scene.add(
-    camera,
-    directionalLight,
-    directionalLight.target,
-    directionalLightCameraHelper,
-    directionalLightHelper
-  );
-
-  return {
-    camera,
-    directionalLight,
-    directionalLightCameraHelper,
-    directionalLightHelper,
-    scene,
-  };
-}
-
-function animate(
-  renderer: WebGLRenderer,
-  scene: Scene,
-  camera: Camera,
-  onFrame?: (elapsedTime: number, deltaTime: number) => void
-) {
-  const timer = new Timer();
-
-  let prevElapsedTime = 0;
-
-  let animationFrameHandle: number | undefined;
-
-  const tick = () => {
-    timer.update();
-    const elapsedTime = timer.getElapsed();
-    const deltaTime = elapsedTime - prevElapsedTime;
-    prevElapsedTime = elapsedTime;
-    onFrame?.(elapsedTime, deltaTime);
-    renderer.render(scene, camera);
-    animationFrameHandle = requestAnimationFrame(tick);
-  };
-
-  tick();
-
-  return () => {
-    if (animationFrameHandle) {
-      cancelAnimationFrame(animationFrameHandle);
-    }
-  };
-}
-
-const CEILING_DEPTH = 20;
-const CEILING_HEIGHT = 0.1;
-const CEILING_WIDTH = 20;
-
-export async function run() {
-  // TODO: implement debug controls
-  // const gui = createControlsPanel();
-  const canvas = setupCanvas();
-  const renderer = setupRenderer(canvas);
-
-  const models = await loadModels();
-
-  const textures = await loadTextures();
-  textures.environmentMap.mapping = EquirectangularReflectionMapping;
-
-  const { Rapier, world } = await setupPhysics();
-
-  const { camera, scene } = setupScene(textures);
-
-  const physicsWorldHelper = createPhysicsWorldHelper(world);
-  physicsWorldHelper.lines.visible = false;
-  scene.add(physicsWorldHelper.lines);
-
-  const ceilingMaterial = new MeshStandardMaterial({
-    color: 0x77_77_77,
-    envMap: textures.environmentMap,
-    metalness: 0.8,
-    roughness: 1,
-  });
-
-  const ceiling = createCeiling(Rapier, world, scene, {
-    depth: CEILING_DEPTH,
-    height: CEILING_HEIGHT,
-    material: ceilingMaterial,
-    position: { x: 0, y: 2.5, z: 0 },
-    width: CEILING_WIDTH,
-  });
-
-  const ceilingFan = createCeilingFan(Rapier, world, scene, {
-    ceilingFanBladesMass: 1,
-    ceilingFanMass: 1,
-    model: models.ceilingFan,
-    position: new Vector3().subVectors(ceiling.body.translation(), {
-      x: 0,
-      y: CEILING_HEIGHT / 2,
-      z: 0,
-    }),
-    scale: 5,
-  });
-
-  const fixedAnchor = createFixedAnchor(Rapier, world, {
-    ceilingBody: ceiling.body,
-    ceilingFanBody: ceilingFan.ceilingFanBody,
-  });
-
-  fromWindowResize().subscribe(({ aspect, height, width }) => {
-    camera.aspect = aspect;
-    camera.updateProjectionMatrix();
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(clamp(window.devicePixelRatio, 1, 2));
-  });
-
-  fromFullscreenKeyup().subscribe((shouldFullscreen) => {
-    if (shouldFullscreen) canvas.requestFullscreen();
-    else document.exitFullscreen();
-  });
-
-  const orbitControls = new OrbitControls(camera, canvas);
-  orbitControls.enablePan = false;
-  orbitControls.enableZoom = false;
-  orbitControls.minPolarAngle = 1.4;
-
-  ceilingFan.joint.configureMotorVelocity(10, 0.5);
-
-  const eventQueue = new Rapier.EventQueue(true);
-
-  const cancelAnimation = animate(renderer, scene, camera, () => {
-    orbitControls.update();
-
-    world.step(eventQueue);
-
-    ceilingFan.update();
-    physicsWorldHelper.update();
-  });
-
-  return () => {
-    cancelAnimation();
-    eventQueue.free();
-
-    ceiling.dispose();
-    ceilingFan.dispose();
-    fixedAnchor.dispose();
-  };
-}
+*/

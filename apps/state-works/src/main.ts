@@ -1,3 +1,3 @@
-import { run } from './playground';
+import { run } from './app';
 
 run();
