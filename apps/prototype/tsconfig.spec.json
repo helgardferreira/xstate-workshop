@@ -1,0 +1,40 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNEXT",
+    "moduleResolution": "bundler",
+    "outDir": "out-tsc/vitest",
+    "tsBuildInfoFile": "out-tsc/vitest/tsconfig.spec.tsbuildinfo",
+    "types": [
+      "node",
+      "vite/client",
+      "vitest",
+      "vitest/globals",
+      "vitest/importMeta"
+    ]
+  },
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.spec.js",
+    "src/**/*.spec.jsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx",
+    "src/**/*.test.js",
+    "src/**/*.test.jsx",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "vite.config.mts",
+    "vite.config.ts",
+    "vitest.config.mts",
+    "vitest.config.ts"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ]
+}

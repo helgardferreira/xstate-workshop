@@ -1,0 +1,18 @@
+{
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "tailwindCSS.classAttributes": ["class", "className", "containerClassName"],
+  "tailwindCSS.classFunctions": ["clsx", "cn", "cva", "twMerge"],
+  "tailwindCSS.colorDecorators": true,
+  "tailwindCSS.experimental.configFile": "apps/state-works/src/styles.css",
+  "tailwindCSS.files.exclude": [
+    "**/.git/**",
+    "**/dist/**",
+    "**/node_modules/**"
+  ],
+  "tailwindCSS.includeLanguages": {
+    "plaintext": "html"
+  },
+  "vitest.maximumConfigs": 10
+}

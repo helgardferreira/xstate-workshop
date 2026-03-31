@@ -1,0 +1,36 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": null,
+    "esModuleInterop": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNEXT",
+    "moduleResolution": "bundler",
+    "outDir": "dist",
+    "rootDir": "src",
+    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
+    "types": ["node", "vite/client"],
+    "useDefineForClassFields": true,
+    "verbatimModuleSyntax": true
+  },
+  "exclude": [
+    "out-tsc",
+    "dist",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "eslint.config.js",
+    "eslint.config.cjs",
+    "eslint.config.mjs"
+  ],
+  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../../libs/utils/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/actors/tsconfig.lib.json"
+    }
+  ]
+}

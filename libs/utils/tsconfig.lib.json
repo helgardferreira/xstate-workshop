@@ -1,0 +1,29 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": false,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "outDir": "dist",
+    "rootDir": "src",
+    "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
+    "types": ["node", "vite/client"],
+    "verbatimModuleSyntax": true
+  },
+  "include": ["src/**/*.ts"],
+  "references": [],
+  "exclude": [
+    "src/**/*.spec.js",
+    "src/**/*.spec.jsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx",
+    "src/**/*.test.js",
+    "src/**/*.test.jsx",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "vite.config.mts",
+    "vite.config.ts",
+    "vitest.config.mts",
+    "vitest.config.ts"
+  ]
+}

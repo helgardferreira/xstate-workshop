@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./libs/actors"
+    },
+    {
+      "path": "./libs/react-utils"
+    },
+    {
+      "path": "./libs/utils"
+    },
+    {
+      "path": "./apps/prototype"
+    },
+    {
+      "path": "./apps/state-works"
+    }
+  ]
+}
