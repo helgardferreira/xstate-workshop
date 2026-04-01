@@ -3,11 +3,7 @@ import { forkJoin, lastValueFrom } from 'rxjs';
 import {
   BoxGeometry,
   Camera,
-  CameraHelper,
-  Color,
   type DataTexture,
-  DirectionalLight,
-  DirectionalLightHelper,
   EquirectangularReflectionMapping,
   Group,
   type Material,
@@ -19,12 +15,12 @@ import {
   type Vector3Like,
   WebGLRenderer,
 } from 'three';
-import { HDRLoader } from 'three/addons';
+import { type GLTF, HDRLoader } from 'three/addons';
 import { OrbitControls } from 'three-stdlib';
 
 import { clamp, html } from '@xstate-workshop/utils';
 
-import { loadModels } from '../load-models';
+import { type Models, loadModels } from '../load-models';
 import {
   createPhysicsWorldHelper,
   fromFullscreenKeyup,
@@ -157,8 +153,10 @@ function setupScene(textures: Textures) {
   );
   // TODO: remove this after debugging
   // camera.position.set(7, 0, 7);
-  camera.position.set(5, 5, 5);
+  camera.position.set(10, 10, 10);
 
+  // TODO: restore or remove this after debugging
+  /*
   const directionalLight = new DirectionalLight(new Color(3, 2, 2.5), 2.1);
   directionalLight.position.set(-20, -7, -7);
 
@@ -179,20 +177,27 @@ function setupScene(textures: Textures) {
   directionalLightCameraHelper.visible = false;
   const directionalLightHelper = new DirectionalLightHelper(directionalLight);
   directionalLightHelper.visible = false;
+  */
 
   scene.add(
-    camera,
+    camera
+    // TODO: restore or remove this after debugging
+    /*
     directionalLight,
     directionalLight.target,
     directionalLightCameraHelper,
     directionalLightHelper
+    */
   );
 
   return {
     camera,
+    // TODO: restore or remove this after debugging
+    /*
     directionalLight,
     directionalLightCameraHelper,
     directionalLightHelper,
+    */
     scene,
   };
 }
@@ -247,6 +252,41 @@ export async function run() {
   physicsWorldHelper.lines.visible = false;
   scene.add(physicsWorldHelper.lines);
 
+  // TODO: implement createLabelPlane utility function / class
+  // TODO: implement class for displaying and labeling meshes
+  // TODO: continue here...
+  // ---------------------------------------------------------------------------
+  const modelsEntries = Object.entries(models) as [keyof Models, GLTF][];
+
+  const cellSize = 3;
+  const gridSize = Math.ceil(Math.sqrt(modelsEntries.length));
+  let columnIdx = 0;
+  let rowIdx = 0;
+
+  console.log(gridSize);
+
+  modelsEntries.forEach(([_key, model]) => {
+    const group = new Group();
+    group.add(model.scene);
+
+    const x = (columnIdx - (gridSize - 1) / 2) * cellSize;
+    const z = (rowIdx - (gridSize - 1) / 2) * cellSize;
+
+    group.position.set(x, 0, z);
+
+    scene.add(group);
+
+    if (columnIdx + 1 > gridSize - 1) {
+      columnIdx = 0;
+      rowIdx += 1;
+    } else {
+      columnIdx += 1;
+    }
+  });
+  // ---------------------------------------------------------------------------
+
+  // TODO: remove this after debugging
+  /*
   const coverStripeBarGroup = new Group();
   coverStripeBarGroup.add(models.coverStripeBar.scene);
 
@@ -254,6 +294,7 @@ export async function run() {
   coverStripeBarGroup.add(models.robotArmB.scene);
 
   scene.add(coverStripeBarGroup, robotArmBGroup);
+  */
 
   // TODO: restore this after debugging
   /*

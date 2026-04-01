@@ -4,7 +4,7 @@ import { type GLTF, GLTFLoader } from 'three/addons';
 import { getModelUrl } from './utils';
 
 // TODO: refactor this to be derived from config array (or even JSON file)
-type Models = {
+export type Models = {
   arrow: GLTF;
   arrowBasic: GLTF;
   boxLarge: GLTF;
