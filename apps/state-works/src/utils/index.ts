@@ -5,6 +5,7 @@ export * from './get-texture-url';
 export * from './gui/create-controls-panel';
 export * from './helpers/create-physics-world-helper';
 export * from './helpers/impulse-helper';
+export * from './helpers/label-plane';
 export * from './math/add-scaled-quaternion';
 export * from './math/calculate-cylinder-inertia';
 export * from './math/calculate-cylinder-mass';
