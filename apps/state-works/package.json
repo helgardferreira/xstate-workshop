@@ -7,6 +7,7 @@
     "@xstate-workshop/actors": "workspace:*",
     "@xstate-workshop/utils": "workspace:*",
     "cannon-es": "0.20.0",
+    "es-toolkit": "1.45.1",
     "lil-gui": "0.21.0",
     "rxjs": "7.8.2",
     "three": "0.182.0",
