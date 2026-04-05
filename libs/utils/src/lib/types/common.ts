@@ -140,6 +140,40 @@ type JSONValue =
   | { [key: string]: JSONValue };
 
 /**
+ * Joins a tuple of strings into a single string literal type, with an
+ * optional separator between each element. Analogous to
+ * `Array.prototype.join` at the type level.
+ *
+ * @template T - The tuple of strings to join.
+ * @template Separator - The string to insert between each element.
+ *   Defaults to `''` (no separator).
+ *
+ * @example
+ * type R1 = JoinStr<["foo", "bar", "baz"], "-">;
+ * //   ^? "foo-bar-baz"
+ *
+ * type R2 = JoinStr<["a", "b", "c"]>;
+ * //   ^? "abc"
+ *
+ * type R3 = JoinStr<["only"]>;
+ * //   ^? "only"
+ *
+ * type R4 = JoinStr<[]>;
+ * //   ^? ""
+ */
+type JoinStr<
+  T extends readonly string[],
+  Separator extends string = '',
+> = T extends readonly [
+  infer Head extends string,
+  ...infer Tail extends string[],
+]
+  ? Tail['length'] extends 0
+    ? Head
+    : `${Head}${Separator}${JoinStr<Tail, Separator>}`
+  : '';
+
+/**
  * Utility type to easily remap the keys of the provided type with the provided
  * prefix.
  */
@@ -163,6 +197,177 @@ type NullishKey<T> = Extract<keyof T, string> | (string & {});
  * Represents a primitive value in TypeScript.
  */
 type Primitive = null | undefined | string | number | boolean | symbol | bigint;
+
+/**
+ * Normalizes a string by replacing all occurrences of the specified delimiter
+ * characters with single spaces. Leading and trailing delimiters are stripped,
+ * and consecutive delimiters are collapsed.
+ *
+ * @template T - The input string to process.
+ * @template Delimiter - A union of single-character strings to treat as delimiters.
+ *
+ * @example
+ * type R1 = SeparateDelimiter<"foo--bar", "-">;
+ * //   ^? "foo bar"
+ *
+ * type R2 = SeparateDelimiter<"--foo---bar--", "-" | "_">;
+ * //   ^? "foo bar"
+ */
+type SeparateDelimiter<
+  T extends string,
+  Delimiter extends string,
+> = T extends `${infer A}${infer B}${infer C}`
+  ? A extends Delimiter
+    ? SeparateDelimiter<`${B}${C}`, Delimiter>
+    : B extends Delimiter
+      ? C extends `${infer _C extends Delimiter}${infer _}` | ''
+        ? SeparateDelimiter<`${A}${C}`, Delimiter>
+        : `${A} ${SeparateDelimiter<`${C}`, Delimiter>}`
+      : `${A}${SeparateDelimiter<`${B}${C}`, Delimiter>}`
+  : T extends Delimiter
+    ? ''
+    : T;
+
+/**
+ * Inserts spaces at camelCase and PascalCase word boundaries within a string.
+ * Handles acronym runs (consecutive uppercase letters) by keeping them grouped
+ * as a single word, splitting only at the transition between an acronym and a
+ * lowercase-led word.
+ *
+ * Uses a two-character lookahead to distinguish between mid-acronym positions
+ * and actual word boundaries.
+ *
+ * @template T - The input string to process.
+ *
+ * @example
+ * type R1 = SeparateWordLike<"fooBar">;
+ * //   ^? "foo Bar"
+ *
+ * type R2 = SeparateWordLike<"parseXMLDoc">;
+ * //   ^? "parse XML Doc"
+ *
+ * type R3 = SeparateWordLike<"HTMLInputElement">;
+ * //   ^? "HTML Input Element"
+ */
+type SeparateWordLike<T extends string> =
+  T extends `${infer A}${infer B}${infer C}${infer D}`
+    ? [B, C] extends [Uppercase<B>, Uppercase<C>]
+      ? A extends Uppercase<A>
+        ? `${A}${SeparateWordLike<`${B}${C}${D}`>}`
+        : `${A} ${SeparateWordLike<`${B}${C}${D}`>}`
+      : B extends Uppercase<B>
+        ? `${A} ${SeparateWordLike<`${B}${C}${D}`>}`
+        : C extends Uppercase<C>
+          ? `${A}${B} ${SeparateWordLike<`${C}${D}`>}`
+          : `${A}${SeparateWordLike<`${B}${C}${D}`>}`
+    : T extends `${infer A}${infer B}`
+      ? B extends ''
+        ? T
+        : B extends Uppercase<B>
+          ? A extends Uppercase<A>
+            ? T
+            : `${A} ${B}`
+          : T
+      : T;
+
+/**
+ * Splits a string into a tuple of substrings at each occurrence of the
+ * given separator. Analogous to `String.prototype.split` at the type level.
+ *
+ * Note: consecutive separators produce empty string elements in the resulting
+ * tuple. If the separator is a union type, the inference will distribute and
+ * produce a union of tuples.
+ *
+ * @template T - The input string to split.
+ * @template Separator - The substring to split on.
+ *   Defaults to ''.
+ *
+ * @example
+ * type R1 = SplitStr<"foo bar baz", " ">;
+ * //   ^? ["foo", "bar", "baz"]
+ *
+ * type R2 = SplitStr<"a::b::c", "::">;
+ * //   ^? ["a", "b", "c"]
+ */
+type SplitStr<
+  T extends string,
+  Separator extends string = '',
+> = T extends `${infer A}${Separator}${infer C}`
+  ? [A, ...SplitStr<C, Separator>]
+  : [T];
+
+/**
+ * Removes all trailing occurrences of the search string from the end
+ * of a string literal type.
+ *
+ * @template T - The input string to trim.
+ * @template Search - The string to remove from the end. Defaults to `' '`.
+ *   Can be a union to trim multiple characters, or a multi-character string
+ *   to trim a specific suffix.
+ *
+ * @example
+ * type R1 = TrimEnd<"foo   ">;
+ * //   ^? "foo"
+ *
+ * type R2 = TrimEnd<"foo...", ".">;
+ * //   ^? "foo"
+ *
+ * type R3 = TrimEnd<"foo \t\n", " " | "\t" | "\n">;
+ * //   ^? "foo"
+ */
+type TrimEnd<
+  T extends string,
+  Search extends string = ' ',
+> = T extends `${infer Head}${Search}` ? TrimEnd<Head, Search> : T;
+
+/**
+ * Removes all leading occurrences of the search string from the start
+ * of a string literal type.
+ *
+ * @template T - The input string to trim.
+ * @template Search - The string to remove from the start. Defaults to `' '`.
+ *   Can be a union to trim multiple characters, or a multi-character string
+ *   to trim a specific prefix.
+ *
+ * @example
+ * type R1 = TrimStart<"   foo">;
+ * //   ^? "foo"
+ *
+ * type R2 = TrimStart<"...foo", ".">;
+ * //   ^? "foo"
+ *
+ * type R3 = TrimStart<"\n\t foo", " " | "\t" | "\n">;
+ * //   ^? "foo"
+ */
+type TrimStart<
+  T extends string,
+  Search extends string = ' ',
+> = T extends `${Search}${infer Tail}` ? TrimStart<Tail, Search> : T;
+
+/**
+ * Removes all leading and trailing occurrences of the search string
+ * from both ends of a string literal type. Composes {@link TrimEnd}
+ * and {@link TrimStart}.
+ *
+ * @template T - The input string to trim.
+ * @template Search - The string to remove from both ends. Defaults to `' '`.
+ *   Can be a union to trim multiple characters, or a multi-character string
+ *   to trim a specific affix.
+ *
+ * @example
+ * type R1 = Trim<"   foo   ">;
+ * //   ^? "foo"
+ *
+ * type R2 = Trim<"--foo--", "-">;
+ * //   ^? "foo"
+ *
+ * type R3 = Trim<" \t foo \n ", " " | "\t" | "\n">;
+ * //   ^? "foo"
+ */
+type Trim<T extends string, Search extends string = ' '> = TrimStart<
+  TrimEnd<T, Search>,
+  Search
+>;
 
 /**
  * Type which given a tuple type returns its own keys, i.e. only its indices.
@@ -209,6 +414,224 @@ type WidenPrimitive<T> = T extends string
           : T;
 
 /**
+ * Default set of single-character word delimiters used by {@link Words}.
+ */
+type CommonWordDelimiters = '-' | ' ' | '_' | '.' | '/';
+
+/**
+ * Splits a string into a tuple of words, handling camelCase, PascalCase,
+ * acronyms, and common delimiters.
+ *
+ * Internally pipelines three transformations:
+ * 1. {@link SeparateWordLike} — inserts spaces at camelCase/acronym boundaries.
+ * 2. {@link SeparateDelimiter} — normalizes delimiters to single spaces.
+ * 3. {@link SplitStr} — splits the resulting space-separated string into a tuple.
+ *
+ * @template T - The input string to split into words.
+ * @template Delimiters - A union of single-character delimiters to recognize.
+ *   Defaults to {@link CommonWordDelimiters} (`'-' | ' ' | '_' | '.' | '/'`).
+ *
+ * @example
+ * type R1 = Words<"fooBar">;
+ * //   ^? ["foo", "Bar"]
+ *
+ * type R2 = Words<"parseXMLDoc">;
+ * //   ^? ["parse", "XML", "Doc"]
+ *
+ * type R3 = Words<"--foo_bar..HTMLInputElement--">;
+ * //   ^? ["foo", "bar", "HTML", "Input", "Element"]
+ */
+type Words<
+  T extends string,
+  Delimiters extends string = CommonWordDelimiters,
+> = SplitStr<SeparateDelimiter<SeparateWordLike<T>, Delimiters>, ' '>;
+
+/**
+ * Applies a case transformation to each word in a tuple of strings.
+ *
+ * @template T - A tuple of strings to transform.
+ * @template Mode - The transformation to apply to each element:
+ *   - `'capitalize'` — lowercases the word then capitalizes the first letter.
+ *   - `'lowercase'` — lowercases the entire word.
+ *   - `'uppercase'` — uppercases the entire word.
+ *
+ * @example
+ * type R1 = WordsCaseMap<["foo", "BAR", "baz"], "capitalize">;
+ * //   ^? ["Foo", "Bar", "Baz"]
+ *
+ * type R2 = WordsCaseMap<["Foo", "BAR"], "lowercase">;
+ * //   ^? ["foo", "bar"]
+ *
+ * type R3 = WordsCaseMap<["foo", "bar"], "uppercase">;
+ * //   ^? ["FOO", "BAR"]
+ */
+type WordsCaseMap<
+  T extends readonly string[],
+  Mode extends 'capitalize' | 'lowercase' | 'uppercase',
+> = T extends readonly [
+  infer Head extends string,
+  ...infer Tail extends readonly string[],
+]
+  ? [
+      Mode extends 'capitalize'
+        ? Capitalize<Lowercase<Head>>
+        : Mode extends 'lowercase'
+          ? Lowercase<Head>
+          : Uppercase<Head>,
+      ...WordsCaseMap<Tail, Mode>,
+    ]
+  : [];
+
+/**
+ * Converts a string literal to camelCase. The first word is fully lowercased
+ * and each subsequent word is capitalized with its remaining characters
+ * lowercased. Handles camelCase, PascalCase, acronyms, and delimiter-separated
+ * inputs.
+ *
+ * @template T - The input string to convert.
+ *
+ * @example
+ * type R1 = CamelCase<"HTMLInputElement">;
+ * //   ^? "htmlInputElement"
+ *
+ * type R2 = CamelCase<"__FOO_BAR__">;
+ * //   ^? "fooBar"
+ */
+type CamelCase<T extends string> =
+  Words<T> extends [
+    infer Head extends string,
+    ...infer Tail extends readonly string[],
+  ]
+    ? `${Lowercase<Head>}${JoinStr<WordsCaseMap<Tail, 'capitalize'>>}`
+    : never;
+
+/**
+ * Converts a string literal to CONSTANT_CASE (also known as SCREAMING_SNAKE_CASE).
+ * Each word is fully uppercased and joined with underscores.
+ *
+ * @template T - The input string to convert.
+ *
+ * @example
+ * type R1 = ConstantCase<"HTMLInputElement">;
+ * //   ^? "HTML_INPUT_ELEMENT"
+ *
+ * type R2 = ConstantCase<"--foo-bar--">;
+ * //   ^? "FOO_BAR"
+ */
+type ConstantCase<T extends string> = JoinStr<
+  WordsCaseMap<Words<T>, 'uppercase'>,
+  '_'
+>;
+
+/**
+ * Converts a string literal to kebab-case. Each word is fully lowercased
+ * and joined with hyphens.
+ *
+ * @template T - The input string to convert.
+ *
+ * @example
+ * type R1 = KebabCase<"HTMLInputElement">;
+ * //   ^? "html-input-element"
+ *
+ * type R2 = KebabCase<"__FOO_BAR__">;
+ * //   ^? "foo-bar"
+ */
+type KebabCase<T extends string> = JoinStr<
+  WordsCaseMap<Words<T>, 'lowercase'>,
+  '-'
+>;
+
+/**
+ * Converts a string literal to lower case words separated by spaces.
+ * Each word is fully lowercased.
+ *
+ * @template T - The input string to convert.
+ *
+ * @example
+ * type R1 = LowerCaseWords<"HTMLInputElement">;
+ * //   ^? "html input element"
+ *
+ * type R2 = LowerCaseWords<"__FOO_BAR__">;
+ * //   ^? "foo bar"
+ */
+type LowerCaseWords<T extends string> = JoinStr<
+  WordsCaseMap<Words<T>, 'lowercase'>,
+  ' '
+>;
+
+/**
+ * Converts a string literal to PascalCase (also known as UpperCamelCase).
+ * Each word is capitalized with its remaining characters lowercased,
+ * and all words are joined without a separator.
+ *
+ * @template T - The input string to convert.
+ *
+ * @example
+ * type R1 = PascalCase<"HTMLInputElement">;
+ * //   ^? "HtmlInputElement"
+ *
+ * type R2 = PascalCase<"--foo-bar--">;
+ * //   ^? "FooBar"
+ */
+type PascalCase<T extends string> = JoinStr<
+  WordsCaseMap<Words<T>, 'capitalize'>
+>;
+
+/**
+ * Converts a string literal to snake_case. Each word is fully lowercased
+ * and joined with underscores.
+ *
+ * @template T - The input string to convert.
+ *
+ * @example
+ * type R1 = SnakeCase<"HTMLInputElement">;
+ * //   ^? "html_input_element"
+ *
+ * type R2 = SnakeCase<"Foo Bar">;
+ * //   ^? "foo_bar"
+ */
+type SnakeCase<T extends string> = JoinStr<
+  WordsCaseMap<Words<T>, 'lowercase'>,
+  '_'
+>;
+
+/**
+ * Converts a string literal to Start Case. Each word is capitalized with
+ * its remaining characters lowercased, and words are joined with spaces.
+ *
+ * @template T - The input string to convert.
+ *
+ * @example
+ * type R1 = StartCaseWords<"HTMLInputElement">;
+ * //   ^? "Html Input Element"
+ *
+ * type R2 = StartCaseWords<"--foo-bar--">;
+ * //   ^? "Foo Bar"
+ */
+type StartCaseWords<T extends string> = JoinStr<
+  WordsCaseMap<Words<T>, 'capitalize'>,
+  ' '
+>;
+
+/**
+ * Converts a string literal to UPPER CASE WORDS separated by spaces.
+ * Each word is fully uppercased.
+ *
+ * @template T - The input string to convert.
+ *
+ * @example
+ * type R1 = UpperCaseWords<"HTMLInputElement">;
+ * //   ^? "HTML INPUT ELEMENT"
+ *
+ * type R2 = UpperCaseWords<"--foo-bar--">;
+ * //   ^? "FOO BAR"
+ */
+type UpperCaseWords<T extends string> = JoinStr<
+  WordsCaseMap<Words<T>, 'uppercase'>,
+  ' '
+>;
+
+/**
  * Get the "exclusive or" of `T` and `U`.
  */
 type XOR<T, U> = T extends object
@@ -222,6 +645,8 @@ type XOR<T, U> = T extends object
 export type {
   BrowserNativeObject,
   BufferLike,
+  CamelCase,
+  ConstantCase,
   DeepRequired,
   Expand,
   GetSingle,
@@ -229,11 +654,26 @@ export type {
   IsEqual,
   IsTuple,
   JSONValue,
+  JoinStr,
+  KebabCase,
+  LowerCaseWords,
   MapPrefixKey,
   NullishKey,
+  PascalCase,
   Primitive,
+  SeparateDelimiter,
+  SeparateWordLike,
+  SnakeCase,
+  SplitStr,
+  StartCaseWords,
+  Trim,
+  TrimEnd,
+  TrimStart,
   TupleKeys,
   UnionToIntersection,
+  UpperCaseWords,
   WidenPrimitive,
+  Words,
+  WordsCaseMap,
   XOR,
 };
