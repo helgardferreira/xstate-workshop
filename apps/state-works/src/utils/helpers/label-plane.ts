@@ -8,7 +8,7 @@ import {
   PlaneGeometry,
 } from 'three';
 
-type LabelPlaneOptions = {
+export type LabelPlaneOptions = {
   backgroundColor?: string;
   color?: string;
   font?: {
@@ -41,7 +41,7 @@ export class LabelPlane extends Object3D {
     } = this.options;
     const fontFamily = font.family ?? 'sans-serif';
     const fontSize = font.size ?? 96;
-    const padding = (this.options.padding ?? 24) * size;
+    const padding = (this.options.padding ?? 48) * size;
 
     // First ensure the desired font is loaded in the global `FontFaceSet`
     await document.fonts.load(`${fontSize * size}px ${fontFamily}`);

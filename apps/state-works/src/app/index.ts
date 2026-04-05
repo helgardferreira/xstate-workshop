@@ -5,7 +5,6 @@ import {
   Camera,
   type DataTexture,
   EquirectangularReflectionMapping,
-  Group,
   type Material,
   Mesh,
   PCFSoftShadowMap,
@@ -15,18 +14,20 @@ import {
   type Vector3Like,
   WebGLRenderer,
 } from 'three';
-import { type GLTF, HDRLoader } from 'three/addons';
+import { HDRLoader } from 'three/addons';
 import { OrbitControls } from 'three-stdlib';
 
 import { clamp, html } from '@xstate-workshop/utils';
 
-import { type Models, loadModels } from '../load-models';
 import {
+  ModelsGridPreview,
   createPhysicsWorldHelper,
   fromFullscreenKeyup,
   fromWindowResize,
   getTextureUrl,
 } from '../utils';
+
+import { loadModels } from './load-models';
 
 function setupCanvas(): HTMLCanvasElement {
   const root = document.getElementById('root');
@@ -252,67 +253,21 @@ export async function run() {
   physicsWorldHelper.lines.visible = false;
   scene.add(physicsWorldHelper.lines);
 
-  // TODO: implement createLabelPlane utility function / class
-  // TODO: implement class for displaying and labeling meshes
-  // TODO: continue here...
-  // ---------------------------------------------------------------------------
-  const modelsEntries = Object.entries(models) as [keyof Models, GLTF][];
-
-  const cellSize = 3;
-  const gridSize = Math.ceil(Math.sqrt(modelsEntries.length));
-  let columnIdx = 0;
-  let rowIdx = 0;
-
-  console.log(gridSize);
-
-  modelsEntries.forEach(([_key, model]) => {
-    const group = new Group();
-    group.add(model.scene);
-
-    const x = (columnIdx - (gridSize - 1) / 2) * cellSize;
-    const z = (rowIdx - (gridSize - 1) / 2) * cellSize;
-
-    group.position.set(x, 0, z);
-
-    scene.add(group);
-
-    if (columnIdx + 1 > gridSize - 1) {
-      columnIdx = 0;
-      rowIdx += 1;
-    } else {
-      columnIdx += 1;
+  const modelsGridPreview = new ModelsGridPreview(
+    Object.values(models).toSorted((a, b) =>
+      a.scene.name.localeCompare(b.scene.name)
+    ),
+    {
+      cellSize: 5,
+      labelPlane: {
+        font: { family: 'Roboto Mono' },
+        offset: { x: 0, y: 4, z: 0 },
+        size: 0.5,
+      },
     }
-  });
-  // ---------------------------------------------------------------------------
+  );
 
-  // TODO: remove this after debugging
-  /*
-  const coverStripeBarGroup = new Group();
-  coverStripeBarGroup.add(models.coverStripeBar.scene);
-
-  const robotArmBGroup = new Group();
-  coverStripeBarGroup.add(models.robotArmB.scene);
-
-  scene.add(coverStripeBarGroup, robotArmBGroup);
-  */
-
-  // TODO: restore this after debugging
-  /*
-  const floorMaterial = new MeshStandardMaterial({
-    color: 0x77_77_77,
-    envMap: textures.environmentMap,
-    metalness: 0.8,
-    roughness: 1,
-  });
-
-  const floor = createFloor(Rapier, world, scene, {
-    depth: 20,
-    height: 0.1,
-    material: floorMaterial,
-    position: { x: 0, y: 2.5, z: 0 },
-    width: 20,
-  });
-  */
+  scene.add(modelsGridPreview);
 
   // TODO: remove this after debugging
   /*
