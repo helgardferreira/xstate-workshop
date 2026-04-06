@@ -1,3 +1,7 @@
-import { run } from './app';
+import { WebGLApp } from './app';
 
-run();
+// run();
+
+const app = new WebGLApp();
+
+app.run();

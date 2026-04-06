@@ -1,4 +1,3 @@
-export * from './create-canvas';
 export * from './get-draco-decoder-path-url';
 export * from './get-texture-url';
 export * from './gui/create-controls-panel';

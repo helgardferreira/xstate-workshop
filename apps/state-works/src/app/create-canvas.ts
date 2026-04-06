@@ -1,11 +1,11 @@
 import { html } from '@xstate-workshop/utils';
 
-export function createCanvas(): HTMLCanvasElement {
-  const root = document.getElementById('root');
+export function createCanvas(id: string): HTMLCanvasElement {
+  const element = document.getElementById(id);
 
-  if (root === null) throw new Error('Root element is missing');
+  if (element === null) throw new Error(`Element with id "${id}" is missing`);
 
-  root.innerHTML = html`
+  element.innerHTML = html`
     <div class="h-screen w-screen overflow-hidden">
       <canvas class="scene outline-none"></canvas>
     </div>
