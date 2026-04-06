@@ -5,7 +5,9 @@ packages:
   - tools/*
 
 onlyBuiltDependencies:
+  - '@nestjs/core'
   - '@swc/core'
   - esbuild
   - nx
+  - sqlite3
   - unrs-resolver

@@ -13,5 +13,13 @@
   ],
   "tailwindCSS.includeLanguages": {
     "plaintext": "html"
-  }
+  },
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "name": "Scene Workbench",
+      "database": "${workspaceFolder:xstate-workshop}/scene_workbench.db"
+    }
+  ]
 }

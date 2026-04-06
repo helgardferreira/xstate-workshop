@@ -1,0 +1,225 @@
+{
+  "name": "@xstate-workshop/scene-workbench",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@faker-js/faker": "10.0.0",
+    "@mikro-orm/core": "6.4.12",
+    "@mikro-orm/nestjs": "6.1.1",
+    "@mikro-orm/seeder": "6.4.12",
+    "@mikro-orm/sql-highlighter": "1.0.1",
+    "@mikro-orm/sqlite": "6.4.12",
+    "@nestjs/common": "11.1.6",
+    "@nestjs/config": "4.0.2",
+    "@nestjs/core": "11.1.6",
+    "@nestjs/platform-ws": "11.1.6",
+    "@nestjs/websockets": "11.1.6",
+    "@xstate-workshop/actors": "workspace:*",
+    "@xstate-workshop/scene-protocol": "workspace:*",
+    "@xstate-workshop/utils": "workspace:*",
+    "es-toolkit": "1.45.1",
+    "rxjs": "7.8.2",
+    "uuid": "13.0.0",
+    "ws": "8.18.3",
+    "xstate": "5.25.0",
+    "zod": "4.3.6"
+  },
+  "nx": {
+    "name": "scene-workbench",
+    "projectType": "application",
+    "sourceRoot": "apps/scene-workbench/src",
+    "targets": {
+      "build": {
+        "cache": true,
+        "configurations": {
+          "development": {
+            "command": "tsc --build tsconfig.app.json"
+          },
+          "production": {
+            "command": "tsc --build tsconfig.prod.json"
+          }
+        },
+        "defaultConfiguration": "production",
+        "dependsOn": [
+          "^build",
+          "typecheck"
+        ],
+        "executor": "nx:run-commands",
+        "inputs": [
+          "production",
+          "^production",
+          {
+            "externalDependencies": [
+              "typescript"
+            ]
+          }
+        ],
+        "options": {
+          "cwd": "apps/scene-workbench"
+        },
+        "outputs": [
+          "{projectRoot}/dist/src"
+        ]
+      },
+      "build-deps": {
+        "configurations": {},
+        "dependsOn": [
+          "^build"
+        ],
+        "executor": "nx:noop",
+        "options": {},
+        "parallelism": true
+      },
+      "lint": {
+        "cache": true,
+        "configurations": {},
+        "executor": "nx:run-commands",
+        "inputs": [
+          "default",
+          "^default",
+          "{workspaceRoot}/eslint.config.mjs",
+          "{workspaceRoot}/apps/scene-workbench/eslint.config.mjs",
+          "{workspaceRoot}/tools/eslint-rules/**/*",
+          {
+            "externalDependencies": [
+              "eslint"
+            ]
+          }
+        ],
+        "metadata": {
+          "description": "Runs ESLint on project",
+          "help": {
+            "command": "pnpm exec eslint --help",
+            "example": {
+              "options": {
+                "max-warnings": 0
+              }
+            }
+          }
+        },
+        "options": {
+          "command": "eslint .",
+          "cwd": "apps/scene-workbench"
+        },
+        "outputs": [
+          "{options.outputFile}"
+        ],
+        "parallelism": true
+      },
+      "dev": {
+        "configurations": {
+          "development": {
+            "buildTarget": "scene-workbench:build:development"
+          },
+          "production": {
+            "buildTarget": "scene-workbench:build:production"
+          }
+        },
+        "continuous": true,
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "^build",
+          "typecheck"
+        ],
+        "executor": "@nx/js:node"
+      },
+      "test": {
+        "cache": true,
+        "configurations": {},
+        "dependsOn": [
+          "^build"
+        ],
+        "executor": "nx:run-commands",
+        "inputs": [
+          "default",
+          "^production",
+          {
+            "externalDependencies": [
+              "vitest"
+            ]
+          },
+          {
+            "env": "CI"
+          }
+        ],
+        "metadata": {
+          "description": "Run Vite tests",
+          "help": {
+            "command": "pnpm exec vitest --help",
+            "example": {
+              "options": {
+                "bail": 1,
+                "coverage": true
+              }
+            }
+          }
+        },
+        "options": {
+          "command": "vitest",
+          "cwd": "apps/scene-workbench",
+          "passWithNoTests": true
+        },
+        "outputs": [
+          "{projectRoot}/test-output/vitest/coverage"
+        ],
+        "parallelism": true
+      },
+      "typecheck": {
+        "cache": true,
+        "configurations": {},
+        "dependsOn": [
+          "^typecheck"
+        ],
+        "executor": "nx:run-commands",
+        "inputs": [
+          "production",
+          "^production",
+          {
+            "externalDependencies": [
+              "typescript"
+            ]
+          }
+        ],
+        "metadata": {
+          "description": "Runs type-checking for the project.",
+          "help": {
+            "command": "pnpm exec tsc --build --help",
+            "example": {
+              "args": [
+                "--force"
+              ]
+            }
+          }
+        },
+        "options": {
+          "command": "tsc --build --emitDeclarationOnly",
+          "cwd": "apps/scene-workbench"
+        },
+        "outputs": [
+          "{projectRoot}/dist/**/*.d.ts",
+          "{projectRoot}/dist/**/*.d.ts.map",
+          "{projectRoot}/dist/tsconfig.app.tsbuildinfo",
+          "{projectRoot}/out-tsc/vitest/**/*.d.ts",
+          "{projectRoot}/out-tsc/vitest/**/*.d.ts.map",
+          "{projectRoot}/out-tsc/vitest/tsconfig.tsbuildinfo"
+        ],
+        "parallelism": true,
+        "syncGenerators": [
+          "@nx/js:typescript-sync"
+        ]
+      },
+      "watch-deps": {
+        "configurations": {},
+        "continuous": true,
+        "dependsOn": [
+          "build-deps"
+        ],
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "pnpm exec nx watch --projects scene-workbench --includeDependentProjects -- pnpm exec nx build-deps scene-workbench"
+        },
+        "parallelism": true
+      }
+    }
+  }
+}

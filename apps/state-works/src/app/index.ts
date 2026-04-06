@@ -89,6 +89,14 @@ export class WebGLApp {
     const assets = await loadSceneAssets();
     this.buildScene(assets);
 
+    // TODO: learn and experiment with the new `Temporal` API
+    //       - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal
+    // TODO: learn and experiment with newly available baseline 2025 APIs
+    //       - new Iterator API (e.g. `Iterator.from()`, `Iterator.prototype.map()`, `RegExp.escape()`, etc.)
+    // TODO: learn and experiment with TypeScript 6.0 and 7.0 APIs !!! ONLY AFTER VERIFYING MIKRO-ORM WILL PLAY NICELY !!!
+    //       - try using `tsgo` in vscode and neovim setups
+    //         - https://www.lazyvim.org/extras/lang/typescript/tsgo
+    //         - https://marketplace.visualstudio.com/items?itemName=TypeScriptTeam.native-preview
     // TODO: figure out good workflow for positioning models in scene
     //       - use threejs `TransformControls` addon (then later build custom transform controls from scratch)
     //       - implement backend server to save changes made in scene to file for de-serialization in web app

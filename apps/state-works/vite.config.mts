@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import wasm from 'vite-plugin-wasm';
 
+// TODO: determine if proxy for scene-workbench nestjs backend should be configured here
 export default defineConfig(() => ({
   build: {
     commonjsOptions: {

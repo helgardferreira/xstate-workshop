@@ -1,10 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Utility type to represent the types that are native to the browser.
- */
-type BrowserNativeObject = Date | File | FileList;
-
-/**
  * Utility type that represents all possible types that can be used as
  * buffer-like data.
  *
@@ -33,7 +28,7 @@ type BufferLike =
 /**
  * Utility type to force all descendants of `T` to be required.
  */
-type DeepRequired<T> = T extends BrowserNativeObject | Blob
+type DeepRequired<T> = T extends Date | File | Blob
   ? T
   : {
       [K in keyof T]-?: NonNullable<DeepRequired<T[K]>>;
@@ -643,7 +638,6 @@ type XOR<T, U> = T extends object
     : T | U;
 
 export type {
-  BrowserNativeObject,
   BufferLike,
   CamelCase,
   ConstantCase,

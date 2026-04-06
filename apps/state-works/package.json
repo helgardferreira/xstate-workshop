@@ -18,8 +18,17 @@
       "dev": {
         "configurations": {},
         "dependsOn": [
-          "watch-deps"
-        ]
+          "watch-deps",
+          {
+            "projects": [
+              "scene-workbench"
+            ],
+            "target": "dev"
+          }
+        ],
+        "options": {
+          "proxyConfig": "apps/state-works/proxy.conf.json"
+        }
       }
     }
   }

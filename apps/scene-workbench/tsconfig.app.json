@@ -1,0 +1,45 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": false,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "outDir": "dist",
+    "sourceMap": true,
+    "strictBindCallApply": true,
+    "strictNullChecks": true,
+    "target": "es2023",
+    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
+    "typeRoots": ["src/types/ambient", "node_modules/@types/"]
+  },
+  "include": ["mikro-orm", "src/**/*.ts"],
+  "exclude": [
+    "dist",
+    "eslint.config.cjs",
+    "eslint.config.js",
+    "eslint.config.mjs",
+    "out-tsc",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "vite.config.mts",
+    "vite.config.ts",
+    "vitest.config.mts",
+    "vitest.config.ts"
+  ],
+  "references": [
+    {
+      "path": "../../libs/utils/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/scene-protocol/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/actors/tsconfig.lib.json"
+    }
+  ]
+}

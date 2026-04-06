@@ -4,22 +4,28 @@
   "files": [],
   "references": [
     {
+      "path": "./apps/prototype"
+    },
+    {
+      "path": "./apps/scene-workbench"
+    },
+    {
+      "path": "./apps/state-works"
+    },
+    {
       "path": "./libs/actors"
     },
     {
       "path": "./libs/react-utils"
     },
     {
-      "path": "./libs/utils"
-    },
-    {
-      "path": "./apps/prototype"
-    },
-    {
-      "path": "./apps/state-works"
-    },
-    {
       "path": "./libs/scene-protocol"
+    },
+    {
+      "path": "./libs/toasts"
+    },
+    {
+      "path": "./libs/utils"
     }
   ]
 }
