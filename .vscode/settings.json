@@ -13,6 +13,5 @@
   ],
   "tailwindCSS.includeLanguages": {
     "plaintext": "html"
-  },
-  "vitest.maximumConfigs": 10
+  }
 }

@@ -4,16 +4,13 @@
   "private": true,
   "dependencies": {
     "@dimforge/rapier3d": "0.19.3",
-    "@xstate-workshop/actors": "workspace:*",
+    "@xstate-workshop/scene-protocol": "workspace:*",
     "@xstate-workshop/utils": "workspace:*",
-    "cannon-es": "0.20.0",
     "es-toolkit": "1.45.1",
     "lil-gui": "0.21.0",
     "rxjs": "7.8.2",
     "three": "0.182.0",
-    "three-stdlib": "2.36.1",
-    "xstate": "5.25.0",
-    "zod": "4.3.6"
+    "three-stdlib": "2.36.1"
   },
   "nx": {
     "name": "state-works",

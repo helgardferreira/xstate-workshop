@@ -1,6 +1,8 @@
+import { sceneProtocol } from '@xstate-workshop/scene-protocol';
+
 import { WebGLApp } from './app';
 
-// run();
+sceneProtocol();
 
 const app = new WebGLApp();
 

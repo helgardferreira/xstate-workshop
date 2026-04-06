@@ -17,6 +17,9 @@
     },
     {
       "path": "./apps/state-works"
+    },
+    {
+      "path": "./libs/scene-protocol"
     }
   ]
 }

@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "composite": true,
     "customConditions": ["@xstate-workshop/source"],
     "declarationMap": true,

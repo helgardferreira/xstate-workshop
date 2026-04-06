@@ -3,7 +3,6 @@
   "compilerOptions": {
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": null,
     "esModuleInterop": true,
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNEXT",
