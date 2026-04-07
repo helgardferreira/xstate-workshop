@@ -1,17 +1,17 @@
 import * as z from 'zod';
 
-import { epochMillisToDate } from '../utils/codecs/index.js';
-
 // TODO: remove todo example schemas later when implementing actual features
 const TodoSchema = z.object({
   id: z.uuid(),
 
   completed: z.boolean().default(false),
-  description: z.string().max(200).nullable(),
+  description: z.string().max(200).nullish(),
   title: z.string().min(1).max(200),
 
-  createdAt: epochMillisToDate,
-  updatedAt: epochMillisToDate,
+  // TODO: figure out whether to use codec here or not
+  createdAt: z.date(),
+  // TODO: figure out whether to use codec here or not
+  updatedAt: z.date(),
 });
 
 const CreateTodoSchema = z.object({

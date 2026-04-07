@@ -19,7 +19,6 @@ export default defineConfig({
     path.join(process.cwd(), 'apps/scene-workbench/src/**/*.entity.ts'),
   ],
   extensions: [SeedManager],
-  forceUtcTimezone: true,
   /**
    * For vitest, to get around:
    * ```

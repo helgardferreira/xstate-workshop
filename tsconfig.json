@@ -16,9 +16,6 @@
       "path": "./libs/actors"
     },
     {
-      "path": "./libs/react-utils"
-    },
-    {
       "path": "./libs/scene-protocol"
     },
     {

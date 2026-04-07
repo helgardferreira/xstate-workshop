@@ -3,10 +3,11 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/sqlite';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import type {
-  CreateTodo,
-  Todo,
-  UpdateTodo,
+import {
+  type CreateTodo,
+  type Todo,
+  TodoSchema,
+  type UpdateTodo,
 } from '@xstate-workshop/scene-protocol';
 
 import { BroadcastService } from '../broadcast/broadcast.service';
@@ -23,8 +24,10 @@ export class TodosService {
   ) {}
 
   async create(data: CreateTodo): Promise<Todo> {
-    const todo = this.todoRepository.create(data);
+    const entity = this.todoRepository.create(data);
     await this.em.flush();
+
+    const todo = TodoSchema.parse(entity);
 
     this.broadcastService.broadcast.created({ item: todo });
 
@@ -32,26 +35,32 @@ export class TodosService {
   }
 
   async findAll(): Promise<Todo[]> {
-    const todos = await this.todoRepository.findAll();
+    const entities = await this.todoRepository.findAll();
+
+    const todos = TodoSchema.array().parse(entities);
 
     return todos;
   }
 
   async findOne(id: string): Promise<Todo> {
-    const todo = await this.todoRepository.findOne(id);
+    const entity = await this.todoRepository.findOne(id);
 
-    if (!todo) throw new NotFoundException('Todo not found');
+    if (!entity) throw new NotFoundException('Todo not found');
+
+    const todo = TodoSchema.parse(entity);
 
     return todo;
   }
 
   async update(id: string, data: UpdateTodo): Promise<Todo> {
-    const todo = await this.todoRepository.findOne(id);
+    const entity = await this.todoRepository.findOne(id);
 
-    if (!todo) throw new NotFoundException('Todo not found');
+    if (!entity) throw new NotFoundException('Todo not found');
 
-    wrap(todo).assign(data);
+    wrap(entity).assign(data);
     await this.em.flush();
+
+    const todo = TodoSchema.parse(entity);
 
     this.broadcastService.broadcast.patched({
       changes: data,
