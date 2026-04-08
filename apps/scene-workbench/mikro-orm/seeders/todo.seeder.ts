@@ -5,6 +5,7 @@ import { TodoFactory } from '../factories/todo.factory';
 
 import { SeederContext } from './types/seeder-context';
 
+// TODO: remove this later
 export class TodoSeeder extends Seeder {
   private static count = 5;
 

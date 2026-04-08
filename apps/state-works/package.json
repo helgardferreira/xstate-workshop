@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "@dimforge/rapier3d": "0.19.3",
-    "@xstate-workshop/scene-protocol": "workspace:*",
     "@xstate-workshop/utils": "workspace:*",
     "es-toolkit": "1.45.1",
     "lil-gui": "0.21.0",
@@ -25,10 +24,7 @@
             ],
             "target": "dev"
           }
-        ],
-        "options": {
-          "proxyConfig": "apps/state-works/proxy.conf.json"
-        }
+        ]
       }
     }
   }

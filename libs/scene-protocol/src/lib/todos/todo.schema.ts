@@ -1,6 +1,7 @@
 import * as z from 'zod';
 
 // TODO: remove todo example schemas later when implementing actual features
+// TODO: continue here...
 const TodoSchema = z.object({
   id: z.uuid(),
 

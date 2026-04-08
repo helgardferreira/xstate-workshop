@@ -3,11 +3,12 @@
  */
 import * as z from 'zod';
 
+import { SceneConfigSchema } from '../../scenes/scene-config.js';
 import { EnvelopeMetaSchema } from '../envelope-meta.schema.js';
 
-// TODO: implement this once scene schema (and any other relevant schemas) is implemented
 const ClientUpdateSceneSchema = z.object({
   type: z.literal('UPDATE_SCENE'),
+  scene: SceneConfigSchema,
 });
 
 // TODO: implement any additional client -> server message schemas

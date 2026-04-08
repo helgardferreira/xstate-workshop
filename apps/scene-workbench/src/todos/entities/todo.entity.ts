@@ -1,6 +1,7 @@
 import { defineEntity, p } from '@mikro-orm/sqlite';
 import { v4 } from 'uuid';
 
+// TODO: remove this later
 const TodoEntitySchema = defineEntity({
   name: 'Todo',
   properties: {

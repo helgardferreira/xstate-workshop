@@ -3,9 +3,8 @@ import type { WebSocketServer } from 'ws';
 
 import { BroadcastService } from '../broadcast/broadcast.service';
 
-// TODO: rename path and class
-@WebSocketGateway({ path: 'text-to-speech' })
-export class TextToSpeechGateway implements OnGatewayInit<WebSocketServer> {
+@WebSocketGateway({ path: 'scene' })
+export class ScenesGateway implements OnGatewayInit<WebSocketServer> {
   constructor(private readonly broadcastService: BroadcastService) {}
 
   afterInit(server: WebSocketServer) {

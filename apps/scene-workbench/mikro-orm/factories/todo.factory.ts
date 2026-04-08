@@ -4,6 +4,7 @@ import type { EntityData } from '@mikro-orm/sqlite';
 
 import { TodoEntity } from '../../src/todos/entities';
 
+// TODO: remove this later
 export class TodoFactory extends Factory<TodoEntity, EntityData<TodoEntity>> {
   model = TodoEntity;
 

@@ -4,12 +4,12 @@ import { Module } from '@nestjs/common';
 import { BroadcastModule } from '../broadcast/broadcast.module';
 
 import { TodoEntity } from './entities';
-import { TodosController } from './todos.controller';
 import { TodosService } from './todos.service';
 
+// TODO: remove this later
 @Module({
   imports: [MikroOrmModule.forFeature([TodoEntity]), BroadcastModule],
-  controllers: [TodosController],
   providers: [TodosService],
+  exports: [TodosService],
 })
 export class TodosModule {}

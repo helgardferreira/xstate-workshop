@@ -21,9 +21,9 @@ import {
 
 import { ZodHttpInterceptor } from '../common/interceptors';
 import { ZodHttpPipe } from '../common/pipes';
+import { TodosService } from '../todos/todos.service';
 
-import { TodosService } from './todos.service';
-
+// TODO: remove this later
 @Controller('todos')
 export class TodosController {
   constructor(private readonly todosService: TodosService) {}

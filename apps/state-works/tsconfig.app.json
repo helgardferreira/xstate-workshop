@@ -27,9 +27,6 @@
   "references": [
     {
       "path": "../../libs/utils/tsconfig.lib.json"
-    },
-    {
-      "path": "../../libs/scene-protocol/tsconfig.lib.json"
     }
   ]
 }
