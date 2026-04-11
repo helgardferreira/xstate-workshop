@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { CLOSED, CLOSING, OPEN } from 'ws';
 import {
   type ActorRefFrom,
@@ -39,7 +40,7 @@ const socketClientMachine = setup({
       ({ enqueue: _ }, { message }: Pick<MessageEvent, 'message'>) => {
         if (message.type === 'UPDATE_SCENE') {
           // TODO: implement this
-          console.log('UPDATE_SCENE message received', message);
+          Logger.log('UPDATE_SCENE message received', message);
           /*
           enqueue.sendTo(({ context }) => context.parentActor, {
             type: 'UPDATE_SCENE',

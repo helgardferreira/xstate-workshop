@@ -6,7 +6,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   type CreateTodo,
   type Todo,
-  TodoSchema,
   type UpdateTodo,
 } from '@xstate-workshop/scene-protocol';
 
@@ -25,10 +24,8 @@ export class TodosService {
   ) {}
 
   async create(data: CreateTodo): Promise<Todo> {
-    const entity = this.todoRepository.create(data);
+    const todo = this.todoRepository.create(data);
     await this.em.flush();
-
-    const todo = TodoSchema.parse(entity);
 
     this.broadcastService.broadcast.created({ item: todo });
 
@@ -36,32 +33,24 @@ export class TodosService {
   }
 
   async findAll(): Promise<Todo[]> {
-    const entities = await this.todoRepository.findAll();
-
-    const todos = TodoSchema.array().parse(entities);
-
-    return todos;
+    return this.todoRepository.findAll();
   }
 
   async findOne(id: string): Promise<Todo> {
-    const entity = await this.todoRepository.findOne(id);
+    const todo = await this.todoRepository.findOne(id);
 
-    if (!entity) throw new NotFoundException('Todo not found');
-
-    const todo = TodoSchema.parse(entity);
+    if (!todo) throw new NotFoundException('Todo not found');
 
     return todo;
   }
 
   async update(id: string, data: UpdateTodo): Promise<Todo> {
-    const entity = await this.todoRepository.findOne(id);
+    const todo = await this.todoRepository.findOne(id);
 
-    if (!entity) throw new NotFoundException('Todo not found');
+    if (!todo) throw new NotFoundException('Todo not found');
 
-    wrap(entity).assign(data);
+    wrap(todo).assign(data);
     await this.em.flush();
-
-    const todo = TodoSchema.parse(entity);
 
     this.broadcastService.broadcast.patched({
       changes: data,

@@ -18,7 +18,6 @@ import type {
   SocketServerActorEvent,
 } from './types';
 
-// TODO: improve SOC between audio streaming and socket server / client responsibilities
 const socketServerMachine = setup({
   types: {
     context: {} as SocketServerActorContext,

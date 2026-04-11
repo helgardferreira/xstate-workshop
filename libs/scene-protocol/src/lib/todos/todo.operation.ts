@@ -1,81 +1,25 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { io } from '@xstate-workshop/io';
+
 import {
   type CreateTodo,
   CreateTodoSchema,
-  type Todo,
   TodoSchema,
   type UpdateTodo,
   UpdateTodoSchema,
 } from './todo.schema.js';
 
-const createTodo = async (todo: CreateTodo): Promise<Todo> => {
-  const body = JSON.stringify(CreateTodoSchema.encode(todo));
+const createTodo = (todo: CreateTodo) =>
+  io(TodoSchema, CreateTodoSchema).post('/api/todos/', todo);
 
-  const res = await fetch('/api/todos', {
-    body,
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    method: 'POST',
-  });
-  const data: any = await res.json();
+const findAllTodos = () => io(TodoSchema.array()).get('/api/todos');
 
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+const findTodoById = (todoId: string) =>
+  io(TodoSchema).get(`/api/todos/${todoId}`);
 
-  return TodoSchema.decode(data);
-};
+const updateTodoById = (todoId: string, todo: UpdateTodo) =>
+  io(TodoSchema, UpdateTodoSchema).patch(`/api/todos/${todoId}`, todo);
 
-const findAllTodos = async (): Promise<Todo[]> => {
-  const res = await fetch('/api/todos', {
-    headers: { Accept: 'application/json' },
-    method: 'GET',
-  });
-  const data: any = await res.json();
-
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-  return TodoSchema.array().decode(data);
-};
-
-const findTodoById = async (id: string): Promise<Todo> => {
-  const res = await fetch(`/api/todos/${id}`, {
-    headers: { Accept: 'application/json' },
-    method: 'GET',
-  });
-  const data: any = await res.json();
-
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-  return TodoSchema.decode(data);
-};
-
-const updateTodoById = async (id: string, todo: UpdateTodo): Promise<Todo> => {
-  const body = JSON.stringify(UpdateTodoSchema.encode(todo));
-
-  const res = await fetch(`/api/todos/${id}`, {
-    body,
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    method: 'PATCH',
-  });
-  const data: any = await res.json();
-
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-  return TodoSchema.decode(data);
-};
-
-const removeTodoById = async (id: string): Promise<void> => {
-  const res = await fetch(`/api/todos/${id}`, {
-    headers: { Accept: 'application/json' },
-    method: 'DELETE',
-  });
-
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-};
+const removeTodoById = (todoId: string) => io().delete(`/api/todos/${todoId}`);
 
 export {
   createTodo,

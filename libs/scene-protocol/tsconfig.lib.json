@@ -11,7 +11,11 @@
     "verbatimModuleSyntax": true
   },
   "include": ["src/**/*.ts"],
-  "references": [],
+  "references": [
+    {
+      "path": "../io/tsconfig.lib.json"
+    }
+  ],
   "exclude": [
     "src/**/*.spec.js",
     "src/**/*.spec.jsx",

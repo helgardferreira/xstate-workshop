@@ -2,10 +2,6 @@ import { z } from 'zod';
 
 import { SceneEntitySchema } from '../entities/scene-entity.js';
 
-// ────────────────────────────────────────────
-// Scene config
-// ────────────────────────────────────────────
-
 const SceneConfigSchema = z.object({
   /** Human-readable scene name. */
   name: z.string(),
@@ -20,7 +16,7 @@ const SceneConfigSchema = z.object({
   entities: z.array(SceneEntitySchema).prefault([]),
 });
 
-type SceneConfig = z.infer<typeof SceneConfigSchema>;
+type SceneConfig = z.output<typeof SceneConfigSchema>;
 
 export { SceneConfigSchema };
 

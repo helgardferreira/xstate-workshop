@@ -3,7 +3,6 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import wasm from 'vite-plugin-wasm';
 
-// TODO: determine if proxy for scene-workbench nestjs backend should be configured here
 export default defineConfig(() => ({
   build: {
     commonjsOptions: {
@@ -17,13 +16,21 @@ export default defineConfig(() => ({
   cacheDir: '../../node_modules/.vite/apps/state-works',
   plugins: [wasm(), tailwindcss()],
   preview: {
-    port: 4200,
     host: 'localhost',
+    port: 4200,
+    proxy: {
+      '/api': { target: 'http://localhost:3000' },
+      '/scene': { target: 'ws://localhost:3000', ws: true },
+    },
   },
   root: __dirname,
   server: {
-    port: 4200,
     host: 'localhost',
+    port: 4200,
+    proxy: {
+      '/api': { target: 'http://localhost:3000' },
+      '/scene': { target: 'ws://localhost:3000', ws: true },
+    },
   },
   test: {
     coverage: {

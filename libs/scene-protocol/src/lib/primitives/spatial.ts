@@ -1,9 +1,5 @@
 import { z } from 'zod';
 
-// ────────────────────────────────────────────
-// Primitives
-// ────────────────────────────────────────────
-
 const EulerOrderSchema = z.union([
   z.literal('XYZ'),
   z.literal('YXZ'),
@@ -26,10 +22,6 @@ const Vector3PrimitiveSchema = z.object({
   z: z.number(),
 });
 
-// ────────────────────────────────────────────
-// Composites
-// ────────────────────────────────────────────
-
 const TransformSchema = z.object({
   position: Vector3PrimitiveSchema.prefault({ x: 0, y: 0, z: 0 }),
   rotation: EulerPrimitiveSchema.prefault({
@@ -40,13 +32,9 @@ const TransformSchema = z.object({
   scale: Vector3PrimitiveSchema.prefault({ x: 1, y: 1, z: 1 }),
 });
 
-// ────────────────────────────────────────────
-// Inferred types
-// ────────────────────────────────────────────
-
-type EulerPrimitive = z.infer<typeof EulerPrimitiveSchema>;
-type Transform = z.infer<typeof TransformSchema>;
-type Vector3Primitive = z.infer<typeof Vector3PrimitiveSchema>;
+type EulerPrimitive = z.output<typeof EulerPrimitiveSchema>;
+type Transform = z.output<typeof TransformSchema>;
+type Vector3Primitive = z.output<typeof Vector3PrimitiveSchema>;
 
 export { EulerPrimitiveSchema, TransformSchema, Vector3PrimitiveSchema };
 

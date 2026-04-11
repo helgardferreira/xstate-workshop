@@ -4,6 +4,7 @@
 import * as z from 'zod';
 
 import { TodoSchema, UpdateTodoSchema } from '../../todos/todo.schema.js';
+import { isoDatetimeToDate } from '../../utils/codecs/iso-datetime-to-date.codec.js';
 import { EnvelopeMetaSchema } from '../envelope-meta.schema.js';
 import { WsErrorSchema } from '../ws-error.schema.js';
 
@@ -35,8 +36,7 @@ const ServerTodosPatchedSchema = z.object({
   type: z.literal('TODOS.PATCHED'),
   id: z.uuid(),
   changes: UpdateTodoSchema,
-  // TODO: figure out whether to use codec here or not
-  updatedAt: z.date(),
+  updatedAt: isoDatetimeToDate,
 });
 
 // TODO: remove this after debugging

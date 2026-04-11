@@ -2,10 +2,6 @@ import { z } from 'zod';
 
 import { TransformSchema } from '../primitives/spatial.js';
 
-// ────────────────────────────────────────────
-// Entity
-// ────────────────────────────────────────────
-
 const SceneEntitySchema = z.object({
   /** Unique identifier for this entity within the scene. */
   id: z.string(),
@@ -20,7 +16,7 @@ const SceneEntitySchema = z.object({
   transform: TransformSchema.prefault({}),
 });
 
-type SceneEntity = z.infer<typeof SceneEntitySchema>;
+type SceneEntity = z.output<typeof SceneEntitySchema>;
 
 export { SceneEntitySchema };
 
