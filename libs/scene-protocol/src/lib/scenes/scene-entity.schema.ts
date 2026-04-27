@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { TransformSchema } from '../primitives/spatial.js';
+import { TransformSchema } from './spatial.schema.js';
 
 const SceneEntitySchema = z.object({
   /** Unique identifier for this entity within the scene. */

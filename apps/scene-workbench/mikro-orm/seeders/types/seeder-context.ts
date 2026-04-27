@@ -1,5 +1,2 @@
-import type { TodoEntity } from '../../../src/todos/entities';
-
-export type SeederContext = {
-  todos?: TodoEntity[];
-};
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type SeederContext = {};

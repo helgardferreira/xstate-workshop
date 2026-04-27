@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 
 import { SeedManager } from '@mikro-orm/seeder';
 import { SqlHighlighter } from '@mikro-orm/sql-highlighter';
@@ -7,7 +7,7 @@ import { defineConfig } from '@mikro-orm/sqlite';
 import { seederFileName } from './utils/seeder-file-name';
 
 export default defineConfig({
-  dbName: path.join(process.cwd(), 'scene_workbench.db'),
+  dbName: path.join(process.cwd(), 'data', 'scene_workbench.db'),
   /**
    * Enables debug mode to log SQL queries and discovery information.
    */

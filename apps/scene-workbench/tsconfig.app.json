@@ -39,6 +39,9 @@
       "path": "../../libs/scene-protocol/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/io/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/actors/tsconfig.lib.json"
     }
   ]

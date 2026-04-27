@@ -1,5 +1,5 @@
-type Ok<T> = { ok: true; value: T };
+type Ok<V> = { ok: true; value: V };
 type Err<E> = { ok: false; error: E };
-type Result<T, E = unknown> = Ok<T> | Err<E>;
+type Result<V, E = unknown> = Ok<V> | Err<E>;
 
 export type { Err, Ok, Result };

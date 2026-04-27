@@ -339,6 +339,9 @@ importers:
       '@xstate-workshop/actors':
         specifier: workspace:*
         version: link:../../libs/actors
+      '@xstate-workshop/io':
+        specifier: workspace:*
+        version: link:../../libs/io
       '@xstate-workshop/scene-protocol':
         specifier: workspace:*
         version: link:../../libs/scene-protocol

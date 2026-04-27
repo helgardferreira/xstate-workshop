@@ -1,6 +1,6 @@
 import * as z from 'zod';
 
-import { isoDatetimeToDate } from '../utils/codecs/iso-datetime-to-date.codec.js';
+import { isoDatetimeToDate } from '../utils/codecs/index.js';
 
 // TODO: remove todo example schemas later when implementing actual features
 // TODO: continue here...

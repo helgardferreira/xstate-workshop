@@ -1,0 +1,24 @@
+{
+  "name": "test-level",
+  "entities": [
+    {
+      "id": "player-truck",
+      "model": "pickup_truck",
+      "transform": {
+        "position": { "x": 10, "y": 0, "z": 5 },
+        "rotation": { "x": 0, "y": 1.57, "z": 0, "order": "XYZ" },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      }
+    },
+    {
+      "id": "ramp-01",
+      "model": "concrete_ramp",
+      "transform": {
+        "position": { "x": 25, "y": 0, "z": 5 },
+        "rotation": { "x": 0, "y": 0, "z": 0, "order": "XYZ" },
+        "scale": { "x": 2, "y": 1, "z": 1 }
+      }
+    }
+  ],
+  "environment": "warehouse_hdr"
+}

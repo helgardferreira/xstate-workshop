@@ -3,16 +3,21 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  InternalServerErrorException,
+  Logger,
   Param,
-  Patch,
   Post,
   UseInterceptors,
 } from '@nestjs/common';
-import * as z from 'zod';
+import { type Observable, map } from 'rxjs';
+import { z } from 'zod';
 
 import {
   type SceneConfig,
   SceneConfigSchema,
+  type SceneSummary,
+  SceneSummarySchema,
 } from '@xstate-workshop/scene-protocol';
 
 import { ZodHttpInterceptor } from '../common/interceptors';
@@ -20,52 +25,84 @@ import { ZodHttpPipe } from '../common/pipes';
 
 import { ScenesService } from './scenes.service';
 
-// TODO: implement HTTP REST request module to handle scene config serialization and de-serialization
-// TODO: continue here...
 @Controller('scenes')
 export class ScenesController {
   constructor(private readonly scenesService: ScenesService) {}
 
-  @Post()
-  @UseInterceptors(new ZodHttpInterceptor(SceneConfigSchema))
-  createScene(
-    @Body(new ZodHttpPipe(SceneConfigSchema)) body: SceneConfig
-  ): Promise<SceneConfig> {
-    return this.scenesService.create(body);
-  }
-
   @Get()
-  @UseInterceptors(new ZodHttpInterceptor(SceneConfigSchema))
-  findAllScenes(): Promise<SceneConfig[]> {
-    return this.scenesService.findAll();
+  @UseInterceptors(new ZodHttpInterceptor(SceneSummarySchema))
+  findAllScenes(): Observable<SceneSummary[]> {
+    return this.scenesService.findAll().pipe(
+      map((result) => {
+        if (!result.ok) {
+          if (result.error instanceof HttpException) throw result.error;
+
+          Logger.error(result.error);
+
+          throw new InternalServerErrorException();
+        }
+
+        return result.value;
+      })
+    );
   }
 
   @Get(':name')
   @UseInterceptors(new ZodHttpInterceptor(SceneConfigSchema))
   findSceneByName(
     @Param('name', new ZodHttpPipe(z.string())) name: string
-  ): Promise<SceneConfig> {
-    return this.scenesService.findOne(name);
+  ): Observable<SceneConfig> {
+    return this.scenesService.findOne(name).pipe(
+      map((result) => {
+        if (!result.ok) {
+          if (result.error instanceof HttpException) throw result.error;
+
+          Logger.error(result.error);
+
+          throw new InternalServerErrorException();
+        }
+
+        return result.value;
+      })
+    );
   }
 
-  @Patch(':name')
+  @Post()
   @UseInterceptors(new ZodHttpInterceptor(SceneConfigSchema))
-  updateSceneByName(
-    @Param('name', new ZodHttpPipe(z.string())) name: string,
-    @Body(
-      new ZodHttpPipe(
-        SceneConfigSchema.pick({ entities: true, environment: true })
-      )
-    )
-    body: Pick<SceneConfig, 'entities' | 'environment'>
-  ): Promise<SceneConfig> {
-    return this.scenesService.update(name, body);
+  upsertScene(
+    @Body(new ZodHttpPipe(SceneConfigSchema)) body: SceneConfig
+  ): Observable<SceneConfig> {
+    return this.scenesService.upsert(body).pipe(
+      map((result) => {
+        if (!result.ok) {
+          if (result.error instanceof HttpException) throw result.error;
+
+          Logger.error(result.error);
+
+          throw new InternalServerErrorException();
+        }
+
+        return result.value;
+      })
+    );
   }
 
   @Delete(':name')
   removeSceneByName(
     @Param('name', new ZodHttpPipe(z.string())) name: string
-  ): Promise<void> {
-    return this.scenesService.remove(name);
+  ): Observable<void> {
+    return this.scenesService.remove(name).pipe(
+      map((result) => {
+        if (!result.ok) {
+          if (result.error instanceof HttpException) throw result.error;
+
+          Logger.error(result.error);
+
+          throw new InternalServerErrorException();
+        }
+
+        return result.value;
+      })
+    );
   }
 }

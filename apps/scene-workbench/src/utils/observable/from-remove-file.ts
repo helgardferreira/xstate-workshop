@@ -1,0 +1,23 @@
+import fs from 'node:fs';
+
+import { Observable } from 'rxjs';
+
+import { type Result, err, ok } from '@xstate-workshop/io';
+
+export function fromRemoveFile(
+  filePath: string
+): Observable<Result<undefined, NodeJS.ErrnoException>> {
+  return new Observable<Result<undefined, NodeJS.ErrnoException>>(
+    (subscriber) => {
+      fs.unlink(filePath, (error) => {
+        if (error) {
+          subscriber.next(err(error));
+          subscriber.complete();
+        } else {
+          subscriber.next(ok(undefined));
+          subscriber.complete();
+        }
+      });
+    }
+  );
+}

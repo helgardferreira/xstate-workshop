@@ -15,6 +15,7 @@
     "@nestjs/platform-ws": "11.1.18",
     "@nestjs/websockets": "11.1.18",
     "@xstate-workshop/actors": "workspace:*",
+    "@xstate-workshop/io": "workspace:*",
     "@xstate-workshop/scene-protocol": "workspace:*",
     "@xstate-workshop/utils": "workspace:*",
     "es-toolkit": "1.45.1",

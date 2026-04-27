@@ -3,7 +3,7 @@
  */
 import * as z from 'zod';
 
-import { SceneConfigSchema } from '../../scenes/scene-config.js';
+import { SceneConfigSchema } from '../../scenes/index.js';
 import { EnvelopeMetaSchema } from '../envelope-meta.schema.js';
 
 const ClientUpdateSceneSchema = z.object({

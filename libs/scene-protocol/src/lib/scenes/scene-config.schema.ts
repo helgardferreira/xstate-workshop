@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { SceneEntitySchema } from '../entities/scene-entity.js';
+import { SceneEntitySchema } from './scene-entity.schema.js';
 
 const SceneConfigSchema = z.object({
   /** Human-readable scene name. */
