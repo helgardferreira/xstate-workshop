@@ -51,7 +51,7 @@ export class ImpulseHelper extends Object3D {
   private impulseHeads: InstancedMesh<ConeGeometry, MeshBasicMaterial>;
   private impulseShafts: InstancedMesh<CylinderGeometry, MeshBasicMaterial>;
 
-  constructor(private options: ImpulseHelperOptions = {}) {
+  constructor(options: ImpulseHelperOptions = {}) {
     super();
 
     const {

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { ConfigSchema } from './common/schemas';
-import { PersistenceModule } from './persistence/persistence.module';
 import { ScenesModule } from './scenes/scenes.module';
 
 @Module({
@@ -12,7 +11,8 @@ import { ScenesModule } from './scenes/scenes.module';
       isGlobal: true,
       validate: (config: Record<string, unknown>) => ConfigSchema.parse(config),
     }),
-    PersistenceModule.register(),
+    // TODO: restore this if sqlite database is ever needed
+    // PersistenceModule.register(),
 
     ScenesModule,
   ],

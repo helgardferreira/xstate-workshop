@@ -22,6 +22,7 @@ export * from './observable/from-object-3d-traverse';
 export * from './observable/from-pressed-keys';
 export * from './observable/from-texture';
 export * from './observable/from-window-resize';
+export * from './observable/mutable-set-subject';
 export * from './observable/pointer-coordinates-subject';
 export * from './observable/to-contact-pair';
 export * from './rapier/create-collision-group-mask';

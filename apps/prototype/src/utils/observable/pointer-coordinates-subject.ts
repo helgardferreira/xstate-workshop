@@ -25,6 +25,7 @@ export class PointerCoordinatesSubject extends BehaviorSubject<Vector2> {
   private dispose() {
     if (this.disposed) return;
     this.subscription.unsubscribe();
+    this.disposed = true;
   }
 
   override complete(): void {
