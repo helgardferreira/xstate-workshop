@@ -3,10 +3,9 @@ import {
   type Observable,
   Subject,
   type Subscription,
-  distinctUntilChanged,
+  filter,
   fromEvent,
-  map,
-  withLatestFrom,
+  sample,
 } from 'rxjs';
 import {
   Box3,
@@ -25,33 +24,41 @@ import { MutableSetSubject, PointerCoordinatesSubject } from '../../utils';
 
 import { highlightedObjectFrom } from './highlighted-object-from';
 
+// TODO: maybe remove this later
 type TransformControlsEvent<T extends keyof TransformControlsEventMap> = {
   readonly type: T;
-  readonly target: GizmoControls;
+  readonly target: Gizmo;
 } & TransformControlsEventMap[T];
 
-type GizmoControlsOptions = {
+type GizmoOptions = {
   camera: Camera;
   domElement: HTMLElement | SVGElement;
   objects?: Object3D[];
 };
 
+// TODO: create state machine and move various logic into gizmo state machine
+//       - implement rotate / scale / translate mode switching
+//       - implement rotate / scale / translate axis toggling
+//       - implement rotate / scale / translate locking
+//       - implement undo / redo stacks
+//       - implement simple rotate / scale / translate snapping
+//       - implement grid translate snapping
+//       - implement box3 translate snapping
+// TODO: implement selected object box3 alongside highlighted object box3
 // TODO: maybe rename this to just `Gizmo`
-// TODO: implement override for `dispose` to clear memory correctly (e.g. observable subscriptions, Box3, Box3Helper, etc.)
-// TODO: implement gizmo box3 hover and lick logic in `GizmoControls`
-//       - dynamically attach / detach gizmo controls based on raycaster intersection click
-//       - dynamically update `Box3` instance based on intersection hover and update associated `Box3Helper`
-export class GizmoControls extends TransformControls {
+export class Gizmo extends TransformControls {
   private highlightBox: Box3;
   private highlightRaycaster: Raycaster;
   private highlightedObjectSubject: BehaviorSubject<Object3D | null>;
   private intersectionsSubject: Subject<Intersection[]>;
   private objectsSubject: MutableSetSubject<Object3D>;
   private pointerCoordinatesSubject: PointerCoordinatesSubject;
-  private selectedObjectSubject: BehaviorSubject<Object3D | null>;
   private subscriptions: Subscription[];
 
   public override domElement: HTMLElement | SVGElement;
+  public get helper(): ReturnType<TransformControls['getHelper']> {
+    return this.getHelper();
+  }
   public highlightBoxHelper: Box3Helper;
   public get highlightedObject(): Object3D | null {
     return this.highlightedObjectSubject.getValue();
@@ -60,10 +67,10 @@ export class GizmoControls extends TransformControls {
     return Array.from(this.objectsSubject);
   }
   public get selectedObject(): Object3D | null {
-    return this.selectedObjectSubject.getValue();
+    return this.object ?? null;
   }
 
-  constructor(options: GizmoControlsOptions) {
+  constructor(options: GizmoOptions) {
     const { camera, domElement, objects = [] } = options;
 
     super(camera, domElement);
@@ -77,25 +84,37 @@ export class GizmoControls extends TransformControls {
     this.intersectionsSubject = new Subject();
     this.objectsSubject = new MutableSetSubject(objects);
     this.pointerCoordinatesSubject = new PointerCoordinatesSubject();
-    this.selectedObjectSubject = new BehaviorSubject<Object3D | null>(null);
     this.subscriptions = [];
 
     this.setupEvents();
   }
 
-  private fromEvent<T extends keyof TransformControlsEventMap>(
+  // TODO: maybe remove this later
+  private fromTransformControlsEvent<T extends keyof TransformControlsEventMap>(
     type: T
   ): Observable<TransformControlsEvent<T>> {
     return fromEvent<TransformControlsEvent<T>>(this, type);
   }
 
-  private handleObjectHighlight(highlightedObject: Object3D | null) {
-    if (highlightedObject === null) {
+  private handleDeselectObject(): void {
+    this.highlightedObjectSubject.next(null);
+    this.detach();
+  }
+
+  private handleHighlightObject(object: Object3D | null): void {
+    if (object === null) {
       this.highlightBoxHelper.visible = false;
-    } else {
-      this.highlightBox.setFromObject(highlightedObject);
+    } else if (object !== this.selectedObject) {
+      this.highlightBox.setFromObject(object);
       this.highlightBoxHelper.visible = true;
     }
+  }
+
+  private handleSelectObject(object: Object3D | null): void {
+    if (!object || this.selectedObject === object) return;
+
+    this.highlightBoxHelper.visible = false;
+    this.attach(object);
   }
 
   private setupEvents(): void {
@@ -107,38 +126,21 @@ export class GizmoControls extends TransformControls {
     );
 
     this.subscriptions.push(
-      fromEvent<PointerEvent>(this.domElement, 'pointerdown')
-        .pipe(
-          withLatestFrom(this.highlightedObjectSubject),
-          map(([_, object]) => object),
-          distinctUntilChanged()
-        )
-        .subscribe(this.selectedObjectSubject)
+      this.highlightedObjectSubject
+        .pipe(sample(fromEvent(this.domElement, 'pointerdown')))
+        .subscribe((object) => this.handleSelectObject(object))
+    );
+
+    this.subscriptions.push(
+      fromEvent<KeyboardEvent>(window, 'keyup')
+        .pipe(filter((event) => event.key === 'Escape'))
+        .subscribe(() => this.handleDeselectObject())
     );
 
     this.subscriptions.push(
       this.highlightedObjectSubject.subscribe((object) =>
-        this.handleObjectHighlight(object)
+        this.handleHighlightObject(object)
       )
-    );
-
-    // TODO: implement logic to prevent selected objects from being deselected if interacting with gizmo
-    // TODO: implement logic to prevent selected objects from being highlighted
-    // TODO: continue here...
-    this.subscriptions.push(
-      this.selectedObjectSubject.subscribe((selectedObject) => {
-        if (selectedObject === null) {
-          this.detach();
-        } else {
-          this.attach(selectedObject);
-        }
-      })
-    );
-
-    this.subscriptions.push(
-      this.fromEvent('dragging-changed').subscribe((event) => {
-        console.log('dragging-changed event', event);
-      })
     );
   }
 
@@ -173,11 +175,11 @@ export class GizmoControls extends TransformControls {
 
   public override dispose(): void {
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+
+    this.highlightedObjectSubject.unsubscribe();
     this.intersectionsSubject.unsubscribe();
     this.objectsSubject.unsubscribe();
     this.pointerCoordinatesSubject.unsubscribe();
-
-    this.clearObjects();
 
     this.dispose();
   }

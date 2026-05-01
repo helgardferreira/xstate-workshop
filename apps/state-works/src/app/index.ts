@@ -1,13 +1,37 @@
-import type { Subscription } from 'rxjs';
-import { Scene, WebGLRenderer } from 'three';
+/* eslint-disable unused-imports/no-unused-imports */
+import {
+  Observable,
+  type ObservedValueOf,
+  type Subscription,
+  filter,
+  from,
+  lastValueFrom,
+  take,
+  takeWhile,
+} from 'rxjs';
+import {
+  Box3,
+  Box3Helper,
+  BoxHelper,
+  Group,
+  Scene,
+  WebGLRenderer,
+} from 'three';
+import { type ActorRef, type AnyMachineSnapshot, createActor } from 'xstate';
 
+import { untilStateMatches } from '@xstate-workshop/actors';
 import { clamp } from '@xstate-workshop/utils';
 
 import { fromFrames, fromFullscreenKeyup, fromWindowResize } from '../utils';
 
+import {
+  type SceneOrchestratorActorRef,
+  sceneOrchestratorMachine,
+} from './actors';
 import { type AppCamera, createAppCamera } from './create-app-camera';
 import { createCanvas } from './create-canvas';
 import { createRenderer } from './create-renderer';
+import { Gizmo } from './gizmo';
 import { type SceneAssets, loadSceneAssets } from './load-scene-assets';
 
 // TODO: figure out conveyor scene composition (first start with just reproducing the conveyor kit's sample image)
@@ -17,9 +41,11 @@ import { type SceneAssets, loadSceneAssets } from './load-scene-assets';
 export class WebGLApp {
   private appCamera: AppCamera;
   private canvas: HTMLCanvasElement;
+  private gizmo: Gizmo;
   private renderer: WebGLRenderer;
   // TODO: figure out best data structure for easily swapping between multiple scenes
   private scene: Scene;
+  private sceneOrchestratorActor: SceneOrchestratorActorRef;
   private subscriptions: Subscription[] = [];
 
   constructor() {
@@ -30,8 +56,18 @@ export class WebGLApp {
     //       - decide whether to move camera into scene management implementation or not
     this.scene = new Scene();
     this.appCamera = createAppCamera(this.scene, this.canvas);
-    this.appCamera.camera.position.set(10, 10, 10);
+    this.appCamera.camera.position.set(5, 5, 5);
     this.appCamera.controls.target.set(0, 0, 0);
+
+    this.gizmo = new Gizmo({
+      camera: this.appCamera.camera,
+      domElement: this.renderer.domElement,
+    });
+    this.scene.add(this.gizmo.helper, this.gizmo.highlightBoxHelper);
+
+    this.sceneOrchestratorActor = createActor(sceneOrchestratorMachine, {
+      input: {},
+    }).start();
   }
 
   private buildScene(assets: SceneAssets) {
@@ -59,16 +95,22 @@ export class WebGLApp {
   }
 
   private setupEvents() {
-    // Animation loop
+    /*
+     * Animation loop
+     */
     this.subscriptions.push(
       fromFrames().subscribe(() => {
         this.renderer.render(this.scene, this.appCamera.camera);
 
         this.appCamera.update();
+
+        this.gizmo.update();
       })
     );
 
-    // Update renderer size and pixel ratio when window resizes
+    /*
+     * Update renderer size and pixel ratio when window resizes
+     */
     this.subscriptions.push(
       fromWindowResize().subscribe(({ height, width }) => {
         this.renderer.setSize(width, height);
@@ -76,7 +118,9 @@ export class WebGLApp {
       })
     );
 
-    // Attach fullscreen keyboard shortcut event listener
+    /*
+     * Attach fullscreen keyboard shortcut event listener
+     */
     this.subscriptions.push(
       fromFullscreenKeyup().subscribe((shouldFullscreen) => {
         if (shouldFullscreen) this.canvas.requestFullscreen();
@@ -86,26 +130,36 @@ export class WebGLApp {
   }
 
   public async run() {
+    this.sceneOrchestratorActor.send({ type: 'INIT' });
+    await untilStateMatches(this.sceneOrchestratorActor, 'active');
+
     const assets = await loadSceneAssets();
     this.buildScene(assets);
 
-    // TODO: learn and experiment with the new `Temporal` API
-    //       - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal
-    // TODO: learn and experiment with newly available baseline 2025 APIs
-    //       - new Iterator API (e.g. `Iterator.from()`, `Iterator.prototype.map()`, `RegExp.escape()`, etc.)
-    // TODO: learn and experiment with TypeScript 6.0 and 7.0 APIs !!! ONLY AFTER VERIFYING MIKRO-ORM WILL PLAY NICELY !!!
-    //       - try using `tsgo` in vscode and neovim setups
-    //         - https://www.lazyvim.org/extras/lang/typescript/tsgo
-    //         - https://marketplace.visualstudio.com/items?itemName=TypeScriptTeam.native-preview
     // TODO: figure out good workflow for positioning models in scene
     //       - use threejs `TransformControls` addon (then later build custom transform controls from scratch)
     //       - implement backend server to save changes made in scene to file for de-serialization in web app
     //       - figure out sophisticated debugging panel setup
     //       - maybe implement websockets for WebGLApp development?
     // TODO: continue here...
-    ////// ---------------------------------------------------------------------
+    // / ------------------------------------------------------------------------
+    const robotArmA = new Group();
+    robotArmA.add(assets.models.robotArmA.scene);
+    robotArmA.position.set(-2, 0, 0);
 
-    ////// ---------------------------------------------------------------------
+    const robotArmB = new Group();
+    robotArmB.add(assets.models.robotArmB.scene);
+    robotArmB.position.set(2, 0, 0);
+
+    this.scene.add(robotArmA, robotArmB);
+
+    this.gizmo.addEventListener('dragging-changed', (event) => {
+      const isDragging = event.value as boolean;
+      this.appCamera.controls.enabled = !isDragging;
+    });
+
+    this.gizmo.addObjects(robotArmA, robotArmB);
+    // / ------------------------------------------------------------------------
 
     this.setupEvents();
   }

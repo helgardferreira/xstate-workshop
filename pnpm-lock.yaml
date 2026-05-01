@@ -372,6 +372,9 @@ importers:
       '@dimforge/rapier3d':
         specifier: 0.19.3
         version: 0.19.3
+      '@xstate-workshop/actors':
+        specifier: workspace:*
+        version: link:../../libs/actors
       '@xstate-workshop/io':
         specifier: workspace:*
         version: link:../../libs/io
@@ -396,6 +399,12 @@ importers:
       three-stdlib:
         specifier: 2.36.1
         version: 2.36.1(three@0.182.0)
+      xstate:
+        specifier: 5.25.0
+        version: 5.25.0
+      zod:
+        specifier: 4.3.6
+        version: 4.3.6
 
   libs/actors:
     dependencies:

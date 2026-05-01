@@ -2,6 +2,7 @@
   "files.associations": {
     "*.css": "tailwindcss"
   },
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
   "tailwindCSS.classAttributes": ["class", "className", "containerClassName"],
   "tailwindCSS.classFunctions": ["clsx", "cn", "cva", "twMerge"],
   "tailwindCSS.colorDecorators": true,

@@ -1,0 +1,27 @@
+{
+  "name": "modelsGridPreview",
+  "entities": [
+    {
+      "id": "player-truck",
+      "model": "pickup_truck",
+      "transform": {
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0.5599038061507792
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "order": "XYZ"
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      }
+    }
+  ]
+}

@@ -25,7 +25,7 @@ export function io<
   const deleteImpl = (
     path: string,
     options: IoOptions = {}
-  ): Observable<Result<{ message: string }, { message: string }>> => {
+  ): Observable<Result<{ message: string }, Error>> => {
     const { headers: headersOverride, ...restOptions } = options;
     const headers = { ...headersOverride };
 
@@ -37,15 +37,16 @@ export function io<
       switchMap((response) =>
         response.ok
           ? of(ok({ message: 'Success' }))
-          : of(err({ message: `Error ${response.status}` }))
-      )
+          : of(err(new Error(`Error ${response.status}`)))
+      ),
+      catchError((error) => of(err(error)))
     );
   };
 
   const getImpl = (
     path: `/${string}`,
     options: IoOptions = {}
-  ): Observable<Result<ResponseOutput, z.ZodError<ResponseOutput>>> => {
+  ): Observable<Result<ResponseOutput, z.ZodError<ResponseOutput> | Error>> => {
     if (responseSchema === undefined) {
       throw new Error(`Missing response schema in io GET request`);
     }
@@ -60,7 +61,8 @@ export function io<
     }).pipe(
       toJSONResult(),
       unwrapResult(),
-      toParsed(responseSchema as z.ZodType<ResponseOutput, unknown>)
+      toParsed(responseSchema as z.ZodType<ResponseOutput, unknown>),
+      catchError((error) => of(err(error)))
     );
   };
 
@@ -72,7 +74,7 @@ export function io<
     ): Observable<
       Result<
         ResponseOutput,
-        z.ZodError<ResponseOutput> | z.ZodError<RequestOutput>
+        z.ZodError<ResponseOutput> | z.ZodError<RequestOutput> | Error
       >
     > => {
       if (requestSchema === undefined) {
@@ -101,13 +103,7 @@ export function io<
         toJSONResult(),
         unwrapResult(),
         toParsed(responseSchema as z.ZodType<ResponseOutput, unknown>),
-        catchError((error) => {
-          if (error instanceof z.ZodError) {
-            return of(err(error as z.ZodError<RequestOutput>));
-          }
-
-          throw error;
-        })
+        catchError((error) => of(err(error)))
       );
     };
   };

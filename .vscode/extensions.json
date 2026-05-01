@@ -1,7 +1,8 @@
 {
   "recommendations": [
-    "nrwl.angular-console",
+    "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "dbaeumer.vscode-eslint"
+    "mtxr.sqltools-driver-pg",
+    "nrwl.angular-console"
   ]
 }

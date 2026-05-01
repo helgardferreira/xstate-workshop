@@ -1,9 +1,4 @@
-import {
-  type Observable,
-  distinctUntilChanged,
-  map,
-  withLatestFrom,
-} from 'rxjs';
+import { type Observable, map, withLatestFrom } from 'rxjs';
 import { type Intersection, type Object3D } from 'three';
 
 export function highlightedObjectFrom(
@@ -24,7 +19,6 @@ export function highlightedObjectFrom(
       }
 
       return null;
-    }),
-    distinctUntilChanged()
+    })
   );
 }
