@@ -33,6 +33,7 @@ import { createCanvas } from './create-canvas';
 import { createRenderer } from './create-renderer';
 import { Gizmo } from './gizmo';
 import { type SceneAssets, loadSceneAssets } from './load-scene-assets';
+import { createSceneEditor } from './scene-editor';
 
 // TODO: figure out conveyor scene composition (first start with just reproducing the conveyor kit's sample image)
 // TODO: implement mechanism to quickly swap / route between scenes
@@ -51,6 +52,7 @@ export class WebGLApp {
   constructor() {
     this.canvas = createCanvas('root');
     this.renderer = createRenderer(this.canvas);
+    createSceneEditor('scene-editor-root');
 
     // TODO: create function / method for managing scenes
     //       - decide whether to move camera into scene management implementation or not

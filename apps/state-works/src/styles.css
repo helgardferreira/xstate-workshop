@@ -7,4 +7,19 @@
     overscroll-behavior-x: none;
     overscroll-behavior-y: none;
   }
+
+  body {
+    overflow: hidden;
+    position: relative;
+  }
+
+  #scene-editor-root {
+    height: 100%;
+    left: 0;
+    overflow: hidden;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+  }
 }

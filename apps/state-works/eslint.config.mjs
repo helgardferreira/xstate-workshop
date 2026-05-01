@@ -1,9 +1,20 @@
+import * as tsParser from '@typescript-eslint/parser';
+import solid from 'eslint-plugin-solid/configs/typescript';
+
 import baseConfig from '../../eslint.config.mjs';
 
 export default [
   ...baseConfig,
   {
-    ignores: ['src/**/*.json'],
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+    ...solid,
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        project: 'tsconfig.json',
+        projectService: true,
+      },
+    },
   },
   {
     files: ['**/*.json'],
@@ -24,7 +35,7 @@ export default [
     },
   },
   {
-    files: ['**/*.ts', '**/*.js'],
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     // Override or add rules here
     rules: {},
   },

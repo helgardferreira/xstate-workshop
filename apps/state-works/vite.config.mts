@@ -1,7 +1,8 @@
 /// <reference types='vitest' />
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
-import wasm from 'vite-plugin-wasm';
+import solidPlugin from 'vite-plugin-solid';
+import wasmPlugin from 'vite-plugin-wasm';
 
 export default defineConfig(() => ({
   build: {
@@ -14,7 +15,13 @@ export default defineConfig(() => ({
     target: 'ES2023',
   },
   cacheDir: '../../node_modules/.vite/apps/state-works',
-  plugins: [wasm(), tailwindcss()],
+  define: {
+    /*
+     * solid-testing-library relies on "process" which is not shimmed by default
+     */
+    'process.env.STL_SKIP_AUTO_CLEANUP': 'false',
+  },
+  plugins: [wasmPlugin(), solidPlugin(), tailwindcss()],
   preview: {
     host: 'localhost',
     port: 4200,

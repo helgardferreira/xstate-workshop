@@ -4,6 +4,8 @@
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
     "lib": ["ESNext", "DOM"],
     "module": "ESNEXT",
     "moduleResolution": "bundler",
