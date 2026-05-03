@@ -390,12 +390,12 @@ importers:
       '@xstate-workshop/scene-protocol':
         specifier: workspace:*
         version: link:../../libs/scene-protocol
+      '@xstate-workshop/solid-xstate':
+        specifier: workspace:*
+        version: link:../../libs/solid-xstate
       '@xstate-workshop/utils':
         specifier: workspace:*
         version: link:../../libs/utils
-      es-toolkit:
-        specifier: 1.45.1
-        version: 1.45.1
       lil-gui:
         specifier: 0.21.0
         version: 0.21.0
@@ -450,6 +450,21 @@ importers:
       zod:
         specifier: 4.3.6
         version: 4.3.6
+
+  libs/solid-xstate:
+    dependencies:
+      rxjs:
+        specifier: 7.8.2
+        version: 7.8.2
+      solid-js:
+        specifier: 1.9.12
+        version: 1.9.12
+      tslib:
+        specifier: 2.8.1
+        version: 2.8.1
+      xstate:
+        specifier: 5.25.0
+        version: 5.25.0
 
   libs/toasts:
     dependencies:

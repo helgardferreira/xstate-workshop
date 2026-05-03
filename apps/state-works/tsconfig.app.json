@@ -38,16 +38,19 @@
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
   "references": [
     {
-      "path": "../../libs/utils/tsconfig.lib.json"
+      "path": "../../libs/actors/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/io/tsconfig.lib.json"
     },
     {
       "path": "../../libs/scene-protocol/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/actors/tsconfig.lib.json"
+      "path": "../../libs/solid-xstate/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/io/tsconfig.lib.json"
+      "path": "../../libs/utils/tsconfig.lib.json"
     }
   ]
 }

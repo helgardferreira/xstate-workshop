@@ -22,6 +22,9 @@
       "path": "./libs/scene-protocol"
     },
     {
+      "path": "./libs/solid-xstate"
+    },
+    {
       "path": "./libs/toasts"
     },
     {
