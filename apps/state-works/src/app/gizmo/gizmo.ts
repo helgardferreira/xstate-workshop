@@ -151,12 +151,14 @@ export class Gizmo extends TransformControls {
   }
 
   public clearObjects(): this {
+    this.detach();
     this.objectsSubject.clear();
 
     return this;
   }
 
   public deleteObjects(...objects: Object3D[]): this {
+    this.detach();
     objects.forEach((object) => this.objectsSubject.delete(object));
 
     return this;
@@ -174,8 +176,9 @@ export class Gizmo extends TransformControls {
   }
 
   public override dispose(): void {
-    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+    this.detach();
 
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
     this.highlightedObjectSubject.unsubscribe();
     this.intersectionsSubject.unsubscribe();
     this.objectsSubject.unsubscribe();

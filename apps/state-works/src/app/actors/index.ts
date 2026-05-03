@@ -1,1 +1,1 @@
-export * from './scene-orchestrator/scene-orchestrator.machine';
+export * from './scene-manager/scene-manager.machine';

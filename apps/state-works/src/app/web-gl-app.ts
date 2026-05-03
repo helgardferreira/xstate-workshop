@@ -1,0 +1,212 @@
+import {
+  Observable,
+  type Subscription,
+  concatMap,
+  distinctUntilChanged,
+  filter,
+  from,
+  map,
+  shareReplay,
+  toArray,
+} from 'rxjs';
+import { Group, Object3D, Scene, WebGLRenderer } from 'three';
+import { createActor } from 'xstate';
+
+import { untilStateMatches } from '@xstate-workshop/actors';
+import { clamp } from '@xstate-workshop/utils';
+
+import {
+  fromFrames,
+  fromFullscreenKeyup,
+  fromObject3dTraverse,
+  fromWindowResize,
+} from '../utils';
+
+import {
+  type SceneManagerActorRef,
+  type SceneManagerActorSnapshot,
+  sceneManagerMachine,
+} from './actors';
+import { APP_TAGS } from './constants';
+import { type AppCamera, createAppCamera } from './create-app-camera';
+import { createCanvas } from './create-canvas';
+import { createRenderer } from './create-renderer';
+import { Gizmo } from './gizmo';
+import { type SceneAssets, loadSceneAssets } from './load-scene-assets';
+import { createSceneEditor } from './scene-editor';
+import { type AppEntity, AppEntityUserDataSchema } from './schemas';
+import type { Models } from './types';
+
+// TODO: maybe implement diff reconciliation mechanism for scene entity syncing later
+// TODO: figure out conveyor scene composition (first start with just reproducing the conveyor kit's sample image)
+// TODO: implement mechanism to quickly swap / route between scenes
+//       - will make referencing preview scene much easier and will be needed for later setups
+//       - maybe investigate xstate routes (https://stately.ai/docs/routes)?
+export class WebGLApp {
+  private appCamera: AppCamera;
+  private canvas: HTMLCanvasElement;
+  private gizmo: Gizmo;
+  private renderer: WebGLRenderer;
+  // TODO: reimplement this once sceneManagerMachine supports multiple `Scene` instances
+  private scene: Scene;
+  private sceneManagerActor: SceneManagerActorRef;
+  private sceneManagerSnapshot: Observable<SceneManagerActorSnapshot>;
+  private subscriptions: Subscription[] = [];
+
+  private get sceneEntities(): AppEntity[] {
+    return this.sceneManagerActor.getSnapshot().context.currentScene.entities;
+  }
+
+  constructor() {
+    this.canvas = createCanvas('root');
+    this.renderer = createRenderer(this.canvas);
+    createSceneEditor('scene-editor-root');
+
+    // TODO: implement ability to manage multiple `Scene` instances in memory
+    this.scene = new Scene();
+    this.appCamera = createAppCamera(this.scene, this.canvas);
+    this.appCamera.camera.position.set(5, 5, 5);
+    this.appCamera.controls.target.set(0, 0, 0);
+
+    this.gizmo = new Gizmo({
+      camera: this.appCamera.camera,
+      domElement: this.renderer.domElement,
+    });
+    this.scene.add(this.gizmo.helper, this.gizmo.highlightBoxHelper);
+
+    this.sceneManagerActor = createActor(sceneManagerMachine, {
+      input: {},
+    }).start();
+    this.sceneManagerSnapshot = from(this.sceneManagerActor).pipe(
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+  }
+
+  private buildScene(assets: SceneAssets) {
+    const { models, textures } = assets;
+    this.scene.background = textures.environmentMap;
+    this.scene.environment = textures.environmentMap;
+
+    const sceneManagerEntities: Observable<readonly [Object3D[], AppEntity[]]> =
+      this.sceneManagerSnapshot.pipe(
+        map((snapshot) => snapshot.context),
+        distinctUntilChanged(),
+        map((context) => context.currentScene.entities),
+        concatMap((entities) =>
+          fromObject3dTraverse(this.scene).pipe(
+            filter(
+              (previous) =>
+                AppEntityUserDataSchema.safeParse(previous.userData).success
+            ),
+            toArray(),
+            map((previousObjects) => [previousObjects, entities] as const)
+          )
+        )
+      );
+
+    this.subscriptions.push(
+      sceneManagerEntities.subscribe(([previousObjects, entities]) =>
+        this.syncEntities(previousObjects, entities, models)
+      )
+    );
+  }
+
+  private setupEvents() {
+    /*
+     * Animation loop
+     */
+    this.subscriptions.push(
+      fromFrames().subscribe(() => {
+        this.renderer.render(this.scene, this.appCamera.camera);
+
+        this.appCamera.update();
+        this.gizmo.update();
+      })
+    );
+
+    /*
+     * Update renderer size and pixel ratio when window resizes
+     */
+    this.subscriptions.push(
+      fromWindowResize().subscribe(({ height, width }) => {
+        this.renderer.setSize(width, height);
+        this.renderer.setPixelRatio(clamp(window.devicePixelRatio, 1, 2));
+      })
+    );
+
+    /*
+     * Attach fullscreen keyboard shortcut event listener
+     */
+    this.subscriptions.push(
+      fromFullscreenKeyup().subscribe((shouldFullscreen) => {
+        if (shouldFullscreen) this.canvas.requestFullscreen();
+        else document.exitFullscreen();
+      })
+    );
+  }
+
+  private syncEntities(
+    previousObjects: Object3D[],
+    entities: AppEntity[],
+    models: Models
+  ) {
+    this.gizmo.deleteObjects(...previousObjects);
+    this.scene.remove(...previousObjects);
+
+    entities.forEach((entity) => {
+      const {
+        model,
+        transform: { position, rotation, scale },
+      } = entity;
+
+      const group = new Group();
+      group.add(models[model].scene.clone());
+
+      group.position.set(position.x, position.y, position.z);
+      group.rotation.set(rotation.x, rotation.y, rotation.z, rotation.order);
+      group.scale.set(scale.x, scale.y, scale.z);
+      group.userData.tags = [APP_TAGS.Entity];
+
+      this.scene.add(group);
+      this.gizmo.addObjects(group);
+    });
+  }
+
+  public async run() {
+    const assets = await loadSceneAssets();
+    this.buildScene(assets);
+
+    this.sceneManagerActor.send({ type: 'INIT' });
+    await untilStateMatches(this.sceneManagerActor, 'active');
+
+    // TODO: refactor this to observable for better automatic memory cleanup
+    this.gizmo.addEventListener('dragging-changed', (event) => {
+      const isDragging = event.value as boolean;
+      this.appCamera.controls.enabled = !isDragging;
+    });
+
+    this.setupEvents();
+
+    // TODO: remove this after debugging
+    // / ------------------------------------------------------------------------
+    setTimeout(() => {
+      const entityId = crypto.randomUUID();
+
+      this.sceneManagerActor.send({
+        type: 'ADD_ENTITY',
+        entity: {
+          id: entityId,
+          model: 'arrow-basic',
+          transform: { position: { x: 0, y: 0, z: 2 } },
+        },
+      });
+    }, 2000);
+    // / ------------------------------------------------------------------------
+  }
+
+  public dispose() {
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+    this.appCamera.dispose();
+    this.renderer.dispose();
+  }
+}

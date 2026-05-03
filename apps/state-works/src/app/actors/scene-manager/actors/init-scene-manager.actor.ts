@@ -3,23 +3,21 @@ import { type ActorRefFrom, fromEventObservable } from 'xstate';
 
 import type { EventObservableCreator } from '@xstate-workshop/actors';
 import { io } from '@xstate-workshop/io';
-import {
-  SceneConfigSchema,
-  SceneSummarySchema,
-} from '@xstate-workshop/scene-protocol';
+import { SceneSummarySchema } from '@xstate-workshop/scene-protocol';
 
+import { AppSceneConfigSchema } from '../../../schemas';
 import type { InitializedEvent } from '../types';
 
-type InitSceneOrchestratorActorInput = {
+type InitSceneManagerActorInput = {
   sceneName: string;
 };
 
-const initSceneOrchestrator: EventObservableCreator<
+const initSceneManager: EventObservableCreator<
   InitializedEvent,
-  InitSceneOrchestratorActorInput
+  InitSceneManagerActorInput
 > = ({ input }) =>
   forkJoin({
-    getSceneConfigResult: io(SceneConfigSchema).get(
+    getSceneConfigResult: io(AppSceneConfigSchema).get(
       `/api/scenes/${input.sceneName}`
     ),
     getSceneSummariesResult: io(SceneSummarySchema.array()).get('/api/scenes'),
@@ -38,10 +36,8 @@ const initSceneOrchestrator: EventObservableCreator<
     })
   );
 
-export const initSceneOrchestratorLogic = fromEventObservable(
-  initSceneOrchestrator
-);
+export const initSceneManagerLogic = fromEventObservable(initSceneManager);
 
-export type InitSceneOrchestratorActorRef = ActorRefFrom<
-  typeof initSceneOrchestratorLogic
+export type InitSceneManagerActorRef = ActorRefFrom<
+  typeof initSceneManagerLogic
 >;
