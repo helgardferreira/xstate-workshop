@@ -3,25 +3,18 @@ import {
   type Subscription,
   concatMap,
   distinctUntilChanged,
-  filter,
   from,
   fromEvent,
   map,
   shareReplay,
-  toArray,
 } from 'rxjs';
-import { Group, Object3D, Scene, WebGLRenderer } from 'three';
+import { Group, type Object3D, Scene, WebGLRenderer } from 'three';
 import { createActor } from 'xstate';
 
 import { untilStateMatches } from '@xstate-workshop/actors';
 import { clamp } from '@xstate-workshop/utils';
 
-import {
-  fromFrames,
-  fromFullscreenKeyup,
-  fromObject3dTraverse,
-  fromWindowResize,
-} from '../../utils';
+import { fromFrames, fromFullscreenKeyup, fromWindowResize } from '../../utils';
 import {
   type SceneManagerActorRef,
   type SceneManagerActorSnapshot,
@@ -29,13 +22,14 @@ import {
 } from '../actors';
 import { APP_TAGS } from '../constants';
 import { createSceneEditor } from '../scene-editor';
-import { type AppEntity, AppEntityUserDataSchema } from '../schemas';
+import { type AppEntity } from '../schemas';
 import type { Models } from '../types';
 
 import { Clank } from './clank';
 import { type AppCamera, createAppCamera } from './create-app-camera';
 import { createCanvas } from './create-canvas';
 import { createRenderer } from './create-renderer';
+import { fromAppEntityObjects } from './from-app-entity-objects';
 import { type SceneAssets, loadSceneAssets } from './load-scene-assets';
 
 // TODO: maybe implement diff reconciliation mechanism for scene entity syncing later
@@ -72,7 +66,7 @@ export class WebGLApp {
       camera: this.appCamera.camera,
       domElement: this.renderer.domElement,
     });
-    this.scene.add(this.clank.helper, this.clank.highlightBoxHelper);
+    this.scene.add(this.clank, this.clank.highlightBoxHelper);
 
     this.sceneManagerActor = createActor(sceneManagerMachine, {
       input: {},
@@ -100,12 +94,7 @@ export class WebGLApp {
         distinctUntilChanged(),
         map((context) => context.currentScene.entities),
         concatMap((entities) =>
-          fromObject3dTraverse(this.scene).pipe(
-            filter(
-              (previous) =>
-                AppEntityUserDataSchema.safeParse(previous.userData).success
-            ),
-            toArray(),
+          fromAppEntityObjects(this.scene).pipe(
             map((previousObjects) => [previousObjects, entities] as const)
           )
         )
@@ -216,6 +205,7 @@ export class WebGLApp {
   }
 
   public dispose() {
+    this.clank.dispose();
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
     this.appCamera.dispose();
     this.renderer.dispose();

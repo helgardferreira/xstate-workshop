@@ -14,15 +14,16 @@ import {
   type Object3D,
   Raycaster,
 } from 'three';
-import { TransformControls } from 'three/addons';
 
 import { MutableSetSubject, PointerCoordinatesSubject } from '../../../utils';
+// TODO: refactor this later after implementing `clankMachine`
+import { TransformControls } from '../../transform-controls';
 
 import { highlightedObjectFrom } from './highlighted-object-from';
 
 type ClankOptions = {
   camera: Camera;
-  domElement: HTMLElement | SVGElement;
+  domElement: HTMLElement;
   objects?: Object3D[];
 };
 
@@ -44,10 +45,8 @@ export class Clank extends TransformControls {
   private pointerCoordinatesSubject: PointerCoordinatesSubject;
   private subscriptions: Subscription[];
 
-  public override domElement: HTMLElement | SVGElement;
-  public get helper(): ReturnType<TransformControls['getHelper']> {
-    return this.getHelper();
-  }
+  protected override domElement: HTMLElement;
+
   public highlightBoxHelper: Box3Helper;
   public get highlightedObject(): Object3D | null {
     return this.highlightedObjectSubject.getValue();
@@ -78,28 +77,28 @@ export class Clank extends TransformControls {
     this.setupEvents();
   }
 
-  private handleDeselectObject(): void {
+  private handleDeselectObject = (): void => {
     this.highlightedObjectSubject.next(null);
     this.detach();
-  }
+  };
 
-  private handleHighlightObject(object: Object3D | null): void {
+  private handleHighlightObject = (object: Object3D | null): void => {
     if (object === null) {
       this.highlightBoxHelper.visible = false;
     } else if (object !== this.selectedObject) {
       this.highlightBox.setFromObject(object);
       this.highlightBoxHelper.visible = true;
     }
-  }
+  };
 
-  private handleSelectObject(object: Object3D | null): void {
+  private handleSelectObject = (object: Object3D | null): void => {
     if (!object || this.selectedObject === object) return;
 
     this.highlightBoxHelper.visible = false;
     this.attach(object);
-  }
+  };
 
-  private setupEvents(): void {
+  private setupEvents = (): void => {
     this.subscriptions.push(
       highlightedObjectFrom(
         this.intersectionsSubject,
@@ -124,29 +123,29 @@ export class Clank extends TransformControls {
         this.handleHighlightObject(object)
       )
     );
-  }
+  };
 
-  public addObjects(...objects: Object3D[]): this {
+  public addObjects = (...objects: Object3D[]): this => {
     objects.forEach((object) => this.objectsSubject.add(object));
 
     return this;
-  }
+  };
 
-  public clearObjects(): this {
+  public clearObjects = (): this => {
     this.detach();
     this.objectsSubject.clear();
 
     return this;
-  }
+  };
 
-  public deleteObjects(...objects: Object3D[]): this {
+  public deleteObjects = (...objects: Object3D[]): this => {
     this.detach();
     objects.forEach((object) => this.objectsSubject.delete(object));
 
     return this;
-  }
+  };
 
-  public override update(): void {
+  public override update = (): void => {
     this.highlightRaycaster.setFromCamera(
       this.pointerCoordinatesSubject.getValue(),
       this.camera
@@ -155,9 +154,9 @@ export class Clank extends TransformControls {
     this.intersectionsSubject.next(
       this.highlightRaycaster.intersectObjects(this.objects)
     );
-  }
+  };
 
-  public override dispose(): void {
+  public override dispose = (): void => {
     this.detach();
 
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
@@ -167,5 +166,5 @@ export class Clank extends TransformControls {
     this.pointerCoordinatesSubject.unsubscribe();
 
     this.dispose();
-  }
+  };
 }
