@@ -1,1 +1,2 @@
-export * from './editor-collapsible';
+export * from './collapsible';
+export * from './tabs';
