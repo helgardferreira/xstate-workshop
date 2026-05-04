@@ -1,6 +1,5 @@
 import {
   BehaviorSubject,
-  type Observable,
   Subject,
   type Subscription,
   filter,
@@ -15,28 +14,19 @@ import {
   type Object3D,
   Raycaster,
 } from 'three';
-import {
-  TransformControls,
-  type TransformControlsEventMap,
-} from 'three/addons';
+import { TransformControls } from 'three/addons';
 
 import { MutableSetSubject, PointerCoordinatesSubject } from '../../../utils';
 
 import { highlightedObjectFrom } from './highlighted-object-from';
 
-// TODO: maybe remove this later
-type TransformControlsEvent<T extends keyof TransformControlsEventMap> = {
-  readonly type: T;
-  readonly target: Gizmo;
-} & TransformControlsEventMap[T];
-
-type GizmoOptions = {
+type ClankOptions = {
   camera: Camera;
   domElement: HTMLElement | SVGElement;
   objects?: Object3D[];
 };
 
-// TODO: create state machine and move various logic into gizmo state machine
+// TODO: create state machine and move various logic into clank state machine
 //       - implement rotate / scale / translate mode switching
 //       - implement rotate / scale / translate axis toggling
 //       - implement rotate / scale / translate locking
@@ -45,8 +35,7 @@ type GizmoOptions = {
 //       - implement grid translate snapping
 //       - implement box3 translate snapping
 // TODO: implement selected object box3 alongside highlighted object box3
-// TODO: maybe rename this to just `Gizmo`
-export class Gizmo extends TransformControls {
+export class Clank extends TransformControls {
   private highlightBox: Box3;
   private highlightRaycaster: Raycaster;
   private highlightedObjectSubject: BehaviorSubject<Object3D | null>;
@@ -70,7 +59,7 @@ export class Gizmo extends TransformControls {
     return this.object ?? null;
   }
 
-  constructor(options: GizmoOptions) {
+  constructor(options: ClankOptions) {
     const { camera, domElement, objects = [] } = options;
 
     super(camera, domElement);
@@ -87,13 +76,6 @@ export class Gizmo extends TransformControls {
     this.subscriptions = [];
 
     this.setupEvents();
-  }
-
-  // TODO: maybe remove this later
-  private fromTransformControlsEvent<T extends keyof TransformControlsEventMap>(
-    type: T
-  ): Observable<TransformControlsEvent<T>> {
-    return fromEvent<TransformControlsEvent<T>>(this, type);
   }
 
   private handleDeselectObject(): void {

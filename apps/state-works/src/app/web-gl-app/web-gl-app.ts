@@ -32,10 +32,10 @@ import { createSceneEditor } from '../scene-editor';
 import { type AppEntity, AppEntityUserDataSchema } from '../schemas';
 import type { Models } from '../types';
 
+import { Clank } from './clank';
 import { type AppCamera, createAppCamera } from './create-app-camera';
 import { createCanvas } from './create-canvas';
 import { createRenderer } from './create-renderer';
-import { Gizmo } from './gizmo';
 import { type SceneAssets, loadSceneAssets } from './load-scene-assets';
 
 // TODO: maybe implement diff reconciliation mechanism for scene entity syncing later
@@ -46,7 +46,7 @@ import { type SceneAssets, loadSceneAssets } from './load-scene-assets';
 export class WebGLApp {
   private appCamera: AppCamera;
   private canvas: HTMLCanvasElement;
-  private gizmo: Gizmo;
+  private clank: Clank;
   private renderer: WebGLRenderer;
   // TODO: reimplement this once sceneManagerMachine supports multiple `Scene` instances
   private scene: Scene;
@@ -68,11 +68,11 @@ export class WebGLApp {
     this.appCamera.camera.position.set(5, 5, 5);
     this.appCamera.controls.target.set(0, 0, 0);
 
-    this.gizmo = new Gizmo({
+    this.clank = new Clank({
       camera: this.appCamera.camera,
       domElement: this.renderer.domElement,
     });
-    this.scene.add(this.gizmo.helper, this.gizmo.highlightBoxHelper);
+    this.scene.add(this.clank.helper, this.clank.highlightBoxHelper);
 
     this.sceneManagerActor = createActor(sceneManagerMachine, {
       input: {},
@@ -127,15 +127,15 @@ export class WebGLApp {
         this.renderer.render(this.scene, this.appCamera.camera);
 
         this.appCamera.update();
-        this.gizmo.update();
+        this.clank.update();
       })
     );
 
     /*
-     * Disable app camera controls when dragging gizmo
+     * Disable app camera controls when dragging clank
      */
     this.subscriptions.push(
-      fromEvent(this.gizmo, 'dragging-changed').subscribe((event) => {
+      fromEvent(this.clank, 'dragging-changed').subscribe((event) => {
         const isDragging = ('value' in event && event.value) as boolean;
         this.appCamera.controls.enabled = !isDragging;
       })
@@ -167,7 +167,7 @@ export class WebGLApp {
     entities: AppEntity[],
     models: Models
   ) {
-    this.gizmo.deleteObjects(...previousObjects);
+    this.clank.deleteObjects(...previousObjects);
     this.scene.remove(...previousObjects);
 
     entities.forEach((entity) => {
@@ -185,7 +185,7 @@ export class WebGLApp {
       group.userData.tags = [APP_TAGS.Entity];
 
       this.scene.add(group);
-      this.gizmo.addObjects(group);
+      this.clank.addObjects(group);
     });
   }
 
