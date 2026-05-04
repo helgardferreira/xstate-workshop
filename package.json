@@ -49,6 +49,7 @@
     "d3": "7.9.0",
     "es-toolkit": "1.45.1",
     "express": "4.21.2",
+    "lucide-solid": "1.14.0",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.8.2",
     "solid-js": "1.9.12",

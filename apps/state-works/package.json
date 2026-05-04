@@ -10,6 +10,7 @@
     "@xstate-workshop/solid-xstate": "workspace:*",
     "@xstate-workshop/utils": "workspace:*",
     "lil-gui": "0.21.0",
+    "lucide-solid": "1.14.0",
     "rxjs": "7.8.2",
     "solid-js": "1.9.12",
     "three": "0.182.0",

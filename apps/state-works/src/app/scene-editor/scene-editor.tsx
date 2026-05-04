@@ -1,20 +1,28 @@
-import type { Component } from 'solid-js';
+import { type Component, Show } from 'solid-js';
 
-import { EditorCollapsible } from './components';
+import { useSelector } from '@xstate-workshop/solid-xstate';
 
+import { EditorPanel, SceneEntitiesSection } from './features';
+import { useSceneEditor } from './scene-editor-context';
+
+// TODO: implement modal for deleting scene entities and mount here
 export const SceneEditor: Component = () => {
+  const { sceneManagerActor } = useSceneEditor();
+
+  const currentScene = useSelector(
+    sceneManagerActor,
+    (snapshot) => snapshot.context.currentScene
+  );
+
+  const sceneEntities = () => currentScene().entities;
+
   return (
-    <div class="absolute top-0 right-0 h-full p-4">
-      <EditorCollapsible
-        class="bg-base-200 border-primary pointer-events-auto w-80 overflow-hidden"
-        defaultOpen
-        title="Scene Editor"
-      >
-        <div class="h-100">
-          {/* // TODO: implement scene editor UI here */}
-          WIP
-        </div>
-      </EditorCollapsible>
-    </div>
+    <>
+      <EditorPanel>
+        <Show when={sceneEntities().length}>
+          <SceneEntitiesSection entities={sceneEntities()} />
+        </Show>
+      </EditorPanel>
+    </>
   );
 };

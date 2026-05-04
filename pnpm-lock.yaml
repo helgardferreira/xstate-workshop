@@ -77,6 +77,9 @@ importers:
       express:
         specifier: 4.21.2
         version: 4.21.2
+      lucide-solid:
+        specifier: 1.14.0
+        version: 1.14.0(solid-js@1.9.12)
       reflect-metadata:
         specifier: 0.1.13
         version: 0.1.13
@@ -399,6 +402,9 @@ importers:
       lil-gui:
         specifier: 0.21.0
         version: 0.21.0
+      lucide-solid:
+        specifier: 1.14.0
+        version: 1.14.0(solid-js@1.9.12)
       rxjs:
         specifier: 7.8.2
         version: 7.8.2
@@ -5250,6 +5256,11 @@ packages:
   lru-cache@6.0.0:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
+
+  lucide-solid@1.14.0:
+    resolution: {integrity: sha512-OeuC91agcJS3CyneSo96VpdkUAQdQO8c8r0QO5/FIkGnlfJ7Gd0fw3Z6CcdKnG94P0Ydwt+He2ar3oeTzbuNnw==}
+    peerDependencies:
+      solid-js: ^1.4.7
 
   magic-string@0.30.17:
     resolution: {integrity: sha512-sNPKHvyjVf7gyjwS4xGTaW/mCnF8wnjtifKBEhxfZ7E/S8tQ0rssrwGNn6q8JH/ohItJfSQp9mBtQYuTlH5QnA==}
@@ -12301,6 +12312,10 @@ snapshots:
   lru-cache@6.0.0:
     dependencies:
       yallist: 4.0.0
+
+  lucide-solid@1.14.0(solid-js@1.9.12):
+    dependencies:
+      solid-js: 1.9.12
 
   magic-string@0.30.17:
     dependencies:

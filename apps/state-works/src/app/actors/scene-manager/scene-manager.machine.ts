@@ -23,6 +23,7 @@ import type {
 } from './types';
 
 // TODO: implement ability to manage multiple `Scene` instances in memory
+// TODO: trigger upsertSceneConfig action on `ADD_ENTITY`, `REMOVE_ENTITY`, and other relevant scene config mutating actions
 const sceneManagerMachine = setup({
   types: {
     context: {} as SceneManagerActorContext,
