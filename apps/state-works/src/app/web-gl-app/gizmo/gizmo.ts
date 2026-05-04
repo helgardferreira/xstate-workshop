@@ -20,7 +20,7 @@ import {
   type TransformControlsEventMap,
 } from 'three/addons';
 
-import { MutableSetSubject, PointerCoordinatesSubject } from '../../utils';
+import { MutableSetSubject, PointerCoordinatesSubject } from '../../../utils';
 
 import { highlightedObjectFrom } from './highlighted-object-from';
 

@@ -1,8 +1,9 @@
 import { EquirectangularReflectionMapping } from 'three';
 
+import type { Models } from '../types';
+
 import { loadModels } from './load-models';
 import { type Textures, loadTextures } from './load-textures';
-import type { Models } from './types';
 
 export type SceneAssets = {
   models: Models;

@@ -1,1 +1,1 @@
-export * from './web-gl-app';
+export * from './web-gl-app/web-gl-app';

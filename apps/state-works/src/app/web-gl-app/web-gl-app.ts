@@ -5,6 +5,7 @@ import {
   distinctUntilChanged,
   filter,
   from,
+  fromEvent,
   map,
   shareReplay,
   toArray,
@@ -20,22 +21,22 @@ import {
   fromFullscreenKeyup,
   fromObject3dTraverse,
   fromWindowResize,
-} from '../utils';
-
+} from '../../utils';
 import {
   type SceneManagerActorRef,
   type SceneManagerActorSnapshot,
   sceneManagerMachine,
-} from './actors';
-import { APP_TAGS } from './constants';
+} from '../actors';
+import { APP_TAGS } from '../constants';
+import { createSceneEditor } from '../scene-editor';
+import { type AppEntity, AppEntityUserDataSchema } from '../schemas';
+import type { Models } from '../types';
+
 import { type AppCamera, createAppCamera } from './create-app-camera';
 import { createCanvas } from './create-canvas';
 import { createRenderer } from './create-renderer';
 import { Gizmo } from './gizmo';
 import { type SceneAssets, loadSceneAssets } from './load-scene-assets';
-import { createSceneEditor } from './scene-editor';
-import { type AppEntity, AppEntityUserDataSchema } from './schemas';
-import type { Models } from './types';
 
 // TODO: maybe implement diff reconciliation mechanism for scene entity syncing later
 // TODO: figure out conveyor scene composition (first start with just reproducing the conveyor kit's sample image)
@@ -60,7 +61,6 @@ export class WebGLApp {
   constructor() {
     this.canvas = createCanvas('root');
     this.renderer = createRenderer(this.canvas);
-    createSceneEditor('scene-editor-root');
 
     // TODO: implement ability to manage multiple `Scene` instances in memory
     this.scene = new Scene();
@@ -80,6 +80,13 @@ export class WebGLApp {
     this.sceneManagerSnapshot = from(this.sceneManagerActor).pipe(
       shareReplay({ bufferSize: 1, refCount: true })
     );
+
+    createSceneEditor({
+      context: {
+        sceneManagerActor: this.sceneManagerActor,
+      },
+      elementId: 'scene-editor-root',
+    });
   }
 
   private buildScene(assets: SceneAssets) {
@@ -121,6 +128,16 @@ export class WebGLApp {
 
         this.appCamera.update();
         this.gizmo.update();
+      })
+    );
+
+    /*
+     * Disable app camera controls when dragging gizmo
+     */
+    this.subscriptions.push(
+      fromEvent(this.gizmo, 'dragging-changed').subscribe((event) => {
+        const isDragging = ('value' in event && event.value) as boolean;
+        this.appCamera.controls.enabled = !isDragging;
       })
     );
 
@@ -178,12 +195,6 @@ export class WebGLApp {
 
     this.sceneManagerActor.send({ type: 'INIT' });
     await untilStateMatches(this.sceneManagerActor, 'active');
-
-    // TODO: refactor this to observable for better automatic memory cleanup
-    this.gizmo.addEventListener('dragging-changed', (event) => {
-      const isDragging = event.value as boolean;
-      this.appCamera.controls.enabled = !isDragging;
-    });
 
     this.setupEvents();
 

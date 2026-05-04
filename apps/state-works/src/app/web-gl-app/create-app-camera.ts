@@ -1,7 +1,7 @@
 import { PerspectiveCamera, type Scene } from 'three';
 import { OrbitControls } from 'three-stdlib';
 
-import { fromWindowResize } from '../utils';
+import { fromWindowResize } from '../../utils';
 
 export type AppCamera = {
   camera: PerspectiveCamera;
